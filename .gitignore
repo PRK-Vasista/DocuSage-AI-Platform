@@ -1,0 +1,15 @@
+# Python/Backend ignores
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+/backend/.env # IMPORTANT: Never commit sensitive environment files
+
+# Node/Frontend ignores
+/frontend/node_modules
+/frontend/dist
+/frontend/build
+
+# Docker/DB ignores
+# This volume stores the actual PostgreSQL data on your local machine
+postgres_data/

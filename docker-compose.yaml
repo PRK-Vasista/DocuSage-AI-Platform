@@ -1,0 +1,66 @@
+version: '3.8' # Specifies the version of the Docker Compose file format.
+
+services: # Defines all the services (containers) that make up our application.
+
+  # 1. PostgreSQL Database Service
+  db:
+    image: postgres:15-alpine # Use the stable, minimal Alpine version of PostgreSQL 15.
+    container_name: docu-sage-db # Assigns a specific name to the container for easy reference.
+    restart: always # Ensures the container restarts automatically if it fails or the host reboots.
+    environment: # Variables passed into the container for configuration.
+      # These credentials are used internally by PostgreSQL and by other services to connect.
+      POSTGRES_USER: user 
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: docu_sage_db # Sets the name of the default database to create.
+    ports:
+      # Maps the container's internal port 5432 to the host machine's port 5432 (optional but useful for local tools).
+      - "5432:5432" 
+    volumes:
+      # Creates a persistent volume named 'postgres_data' on the host machine.
+      # This ensures the database data is preserved even if the 'db' container is stopped and recreated.
+      - postgres_data:/var/lib/postgresql/data/ 
+      
+  # 2. Python Backend Service (FastAPI)
+  backend:
+    build: # Specifies how to build the Docker image for this service.
+      context: ./backend # Tells Docker to look in the 'backend' directory for its files (like the Dockerfile).
+      dockerfile: Dockerfile # Specifies the Dockerfile name within the context directory.
+    container_name: docu-sage-backend
+    restart: always
+    environment: # Key settings for the FastAPI application.
+      # IMPORTANT: Hostname is 'db' (the service name), not 'localhost', because we are inside the Docker network.
+      DATABASE_URL: postgresql+asyncpg://user:password@db:5432/docu_sage_db
+      # Secure credentials required for JWT creation and verification.
+      SECRET_KEY: "please-change-this-to-a-long-random-string-in-next-sprint" 
+      ALGORITHM: "HS256"
+    ports:
+      # Maps the backend's internal port 8000 to the host machine's localhost:8000 for access.
+      - "8000:8000" 
+    depends_on:
+      # Ensures the 'db' service is healthy and running before attempting to start the 'backend'.
+      - db 
+    volumes:
+      # Mounts the local 'backend' folder into the container's '/app' directory.
+      # This enables live code changes (hot reloading) without container rebuilds during development.
+      - ./backend:/app 
+  
+  # 3. Frontend Service (Placeholder for now)
+  frontend:
+    # Using a minimal image temporarily until we configure Vite/React in the next sub-step.
+    build: # Specifies how to build the Docker image for this service.
+      context: ./frontend # Tells Docker to look in the 'frontend' directory for its files (like the Dockerfile).
+      dockerfile: Dockerfile # Specifies the Dockerfile name within the context directory.
+    restart: always
+    container_name: docu-sage-frontend
+    ports:
+      # Maps the frontend's internal port 3000 to the host machine's localhost:3000 for access.
+      - "3000:3000"
+    # We rely on the backend being up for the frontend to communicate with it.
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src # Mount your source code for live-reloads
+    
+volumes: # Definition section for named volumes.
+  # Defines the persistent volume, referenced above in the 'db' service configuration.
+  postgres_data:

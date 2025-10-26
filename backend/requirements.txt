@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy==2.0.22 
+asyncpg # Fast, async PostgreSQL driver
+python-multipart 
+passlib[argon2] 
+python-jose[cryptography] 
+pydantic==2.5.3 
+pydantic-settings
+email-validator 
+alembic
