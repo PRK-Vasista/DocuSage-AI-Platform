@@ -42,7 +42,10 @@ services: # Defines all the services (containers) that make up our application.
     volumes:
       # Mounts the local 'backend' folder into the container's '/app' directory.
       # This enables live code changes (hot reloading) without container rebuilds during development.
+      # Existing volume for code hot-reloading
       - ./backend:/app 
+      # ADDED: Map the persistent volume to where files.py saves data
+      - user_files:/app/user_uploads/
   
   # 3. Frontend Service (Placeholder for now)
   frontend:
@@ -64,3 +67,5 @@ services: # Defines all the services (containers) that make up our application.
 volumes: # Definition section for named volumes.
   # Defines the persistent volume, referenced above in the 'db' service configuration.
   postgres_data:
+  # ADDED: New volume for persistent file storage
+  user_files: 

@@ -1,0 +1,113 @@
+/* src/styles/global.css
+ * Global styles, resets, and utility classes for DocuSage.
+ * Sets up the base look and feel for the entire application.
+ */
+
+/* 1. Reset and Base Setup */
+*, *::before, *::after {
+    /* Use border-box for easier layout management */
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    /* Define CSS Variables for consistent theming */
+    --color-primary: #3b82f6; /* Blue-500 */
+    --color-success: #10b981; /* Green-500 */
+    --color-error: #ef4444;   /* Red-500 */
+    --color-text-dark: #1f2937;
+    --color-text-light: #6b7280;
+    --color-bg-light: #f9fafb;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+}
+
+body {
+    /* Set required 'Inter' font, fallback to system sans-serif */
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f3f4f6; /* Light gray background */
+    color: var(--color-text-dark);
+    min-height: 100vh;
+}
+
+/* 2. Global Utility - Card (Used in Dashboard) */
+.card {
+    background-color: white;
+    padding: var(--spacing-lg);
+    border-radius: 0.75rem; /* Rounded corners */
+    /* Subtle shadow for depth */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+/* 3. Global Utility - Button Base */
+.btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+    user-select: none;
+}
+
+/* Primary Button (e.g., "Start Chat" in Dashboard) */
+.btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover:not(.btn-disabled) {
+    background-color: #2563eb; /* A darker blue */
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+}
+
+/* 4. Global Utility - Alerts (Used in Dashboard status) */
+.alert-success {
+    background-color: #ecfdf5; /* green-50 */
+    color: #065f46; /* green-800 */
+    border-color: #34d399; /* green-400 */
+}
+
+.alert-error {
+    background-color: #fef2f2; /* red-50 */
+    color: #991b1b; /* red-800 */
+    border-color: #f87171; /* red-400 */
+}
+
+/* 5. Utility Classes */
+.mt-4 {
+    margin-top: 1rem; /* 16px */
+}
+
+/* General Link Styling */
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 0.5rem;
+    }
+
+    .card {
+        padding: var(--spacing-md);
+    }
+}
+

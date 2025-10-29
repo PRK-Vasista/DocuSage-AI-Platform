@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .database import init_db
-from .routers import auth # IMPORT NEW ROUTER
+from .routers import auth, files # IMPORT NEW ROUTER , Added files
 
 # --- Global Logging Configuration ---
 # Configure the root logger to output debug messages and format them nicely.
@@ -61,9 +61,10 @@ app.add_middleware(
 )
 # --- END: CORS Configuration ---
 
-# --- Include Router ---
-logger.info("Including Authentication router...")
-app.include_router(auth.router) 
+# --- Include Routers ---
+logger.info("Including Authentication and Files routers...")
+app.include_router(auth.router, prefix="/api/v1/auth") # ADDED: auth router
+app.include_router(files.router, prefix="/api/v1/files") # ADDED: files router
 logger.info("Routers successfully included.")
 
 # --- Root Route ---

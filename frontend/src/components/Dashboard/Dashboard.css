@@ -1,0 +1,177 @@
+/* * Dashboard.css
+ * Styles for the Document Upload and File List components.
+ * * NOTE: Base styles for .btn, .card, and .alert-* are assumed to be defined 
+ * in src/styles/global.css or the main App component's style block.
+ */
+
+.dashboard-container {
+    /* Center container and set max width */
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+    max-width: 72rem;
+    padding: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --- Document Upload Card Styles --- */
+
+.upload-card {
+    /* Specific layout for the upload card, making it slightly narrower */
+    max-width: 48rem; /* Equivalent to max-w-3xl */
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    border-bottom: 4px solid #3b82f6; /* Accent color */
+}
+
+.upload-card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 0.5rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.file-input {
+    display: block;
+    width: 100%;
+    font-size: 0.875rem;
+    color: #1f2937;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    background-color: #f9fafb;
+    padding: 0.5rem;
+    transition: border-color 0.2s;
+}
+
+.file-input:hover {
+    border-color: #9ca3af;
+}
+
+.upload-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.3s;
+}
+
+/* Specific button colors (should match App.jsx GlobalStyles) */
+.btn-green {
+    background-color: #10b981; /* green-600 */
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3); /* green shadow */
+}
+
+.btn-green:not(.btn-disabled):hover {
+    background-color: #059669; /* green-700 */
+}
+
+.btn-disabled {
+    background-color: #9ca3af; /* gray-400 */
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.upload-status {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid;
+}
+
+.status-title {
+    font-weight: 600;
+}
+
+.status-message {
+    font-size: 0.875rem;
+}
+
+/* --- Uploaded Files List Styles --- */
+
+.file-list-card {
+    /* Full width within the dashboard container */
+    width: 100%; 
+}
+
+.file-list-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.75rem;
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+}
+
+.file-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.file-list-item:hover {
+    background-color: #f9fafb; /* Subtle hover effect */
+    border-radius: 0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+}
+
+.file-details {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.file-icon {
+    color: #2563eb; /* Blue primary color for the icon */
+}
+
+.file-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.file-id {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.empty-message, .loading-message {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
+    font-style: italic;
+}
+

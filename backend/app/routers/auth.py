@@ -3,16 +3,74 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import SQLAlchemyError
+# The core JWT imports are now handled via auth_utils functions, 
+# but we need JWTError for the custom get_current_user check.
+from jose import JWTError 
 
 # Local imports
-from .. import schemas, models
+from .. import schemas, models, auth_utils
 from ..database import get_db
 from ..auth_utils import get_password_hash, verify_password, create_access_token, get_current_user
 
-router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 # Set up a dedicated logger for the Auth Router
+# FIX APPLIED: Prefix removed to prevent double-prefixing with main.py
+router = APIRouter(tags=["Auth"])
 logger = logging.getLogger("auth_router")
 logger.setLevel(logging.INFO) # Use INFO for operational logs, DEBUG for internal flows
+
+# --- Security Dependency ---
+# NOTE: This implementation of get_current_user is custom and relies on the user object,
+# whereas the one in auth_utils.py is for token validation only.
+async def get_current_user(token: str = Depends(auth_utils.oauth2_scheme), db: AsyncSession = Depends(get_db)):
+    """
+    Dependency function to verify JWT token and retrieve the user object.
+    Raises HTTPException 401 if token is invalid or user not found.
+    """
+    
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    validated_email = None
+
+    # 1. Use the token validation logic from auth_utils
+    try:
+        # get_current_user in auth_utils returns {'email': email} if token is valid
+        # This part handles decoding and expiration check
+        token_data_dict = await auth_utils.get_current_user(token) 
+        validated_email = token_data_dict.get("email")
+        
+        if validated_email is None:
+            logger.warning("Token valid but 'email' (sub) claim missing.")
+            raise credentials_exception
+            
+    except HTTPException:
+        # Re-raise the 401 exception if validation fails in auth_utils
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error during token processing: {e}")
+        raise credentials_exception
+
+    # 4. Fetch the user from the database using the extracted email string
+    try:
+        stmt = select(models.User).where(models.User.email == validated_email) # Use the validated_email string
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
+    except SQLAlchemyError as e:
+        logger.error(f"DB ERROR: Query failed during user lookup for validated token. Detail: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error during user lookup for authenticated request."
+        )
+    
+    if user is None:
+        logger.warning(f"Authenticated user not found in DB: {validated_email}")
+        raise credentials_exception
+    
+    # 5. Return the full user object (in a dict format for dependency use)
+    return {'email': user.email, 'id': user.id}
 
 @router.post("/register", response_model=schemas.Token)
 async def register_user(user_data: schemas.UserCreate, db: AsyncSession = Depends(get_db)):

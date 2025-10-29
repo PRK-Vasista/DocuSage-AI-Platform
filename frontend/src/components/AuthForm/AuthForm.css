@@ -1,0 +1,125 @@
+/* src/components/AuthForm/AuthForm.css
+ * Styles specific to the Login and Register forms.
+ */
+
+/* Main Container: Centers the authentication card on the screen */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Aligns card towards the top, avoiding strict vertical center that feels awkward */
+    padding: 3rem 1.5rem; /* Vertical and horizontal padding */
+    min-height: calc(100vh - 5rem); /* Fill viewport height minus navbar height */
+    background-color: #f9fafb; /* light gray background */
+}
+
+/* Authentication Card: Uses the base `.card` style from global.css */
+.auth-card {
+    width: 100%;
+    max-width: 28rem; /* Equivalent to max-w-lg, standard for forms */
+    padding: 2.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Stronger shadow */
+}
+
+.auth-title {
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* Form Groups: Spacing for labels and inputs */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+/* Form Input: Uses the base `.form-input` style from global.css */
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem; /* Rounded corners */
+    color: #1f2937;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+    border-color: #3b82f6; /* blue-500 */
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* Submission Button: Uses the base `.btn` and `.btn-primary` from global.css */
+.auth-btn-submit {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+/* Form Status (Error/Loading) Alerts */
+.auth-alert {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.alert-error {
+    background-color: #fef2f2; /* red-50 */
+    color: #b91c1c; /* red-700 */
+    border: 1px solid #fca5a5; /* red-300 */
+}
+
+.alert-loading {
+    background-color: #eff6ff; /* blue-50 */
+    color: #1d4ed8; /* blue-700 */
+    border: 1px solid #93c5fd; /* blue-300 */
+}
+
+/* Toggle Box (for switching between Login/Register) */
+.auth-toggle-box {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+/* Link Button: Uses the base `.btn-link` style from global.css */
+.btn-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.9rem;
+    color: #3b82f6; /* blue-500 */
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.btn-link:hover {
+    color: #2563eb; /* blue-700 */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 1.5rem;
+    }
+
+    .auth-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+}

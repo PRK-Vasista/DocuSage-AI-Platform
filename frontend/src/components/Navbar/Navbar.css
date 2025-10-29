@@ -1,0 +1,88 @@
+/* src/components/Navbar/Navbar.css
+ * Styles for the main application header and navigation bar.
+ */
+
+.navbar-header {
+    background-color: #ffffff; /* White background */
+    border-bottom: 1px solid #e5e7eb; /* Subtle separator line */
+    padding: 1rem 0;
+    /* Use a slight shadow to lift the header off the page */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.navbar-container {
+    /* Center the content, limit width, and use flexbox for layout */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 80rem; /* Equivalent to max-w-7xl */
+    margin: 0 auto;
+    padding: 0 1.5rem; /* Horizontal padding for responsiveness */
+}
+
+.app-title {
+    font-size: 1.75rem; /* text-2xl */
+    font-weight: 800; /* Extra bold */
+    color: #1f2937; /* Dark text */
+    letter-spacing: -0.025em; /* Tighten up the text */
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Space between buttons/elements */
+}
+
+.user-email {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #374151;
+    /* Add a little padding to separate it visually from the buttons */
+    padding-right: 0.5rem;
+}
+
+/* --- Button Overrides (Matching Global.css Structure) --- */
+
+/* Logout Button (btn-red) */
+.btn-red {
+    background-color: #ef4444; /* red-500 */
+    color: white;
+}
+
+.btn-red:hover {
+    background-color: #dc2626; /* red-600 */
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+}
+
+/* Secondary Button (Login in Logged Out View) */
+.btn-secondary {
+    background-color: #f3f4f6; /* gray-100 */
+    color: #374151; /* gray-700 */
+    border: 1px solid #d1d5db; /* gray-300 border */
+}
+
+.btn-secondary:hover {
+    background-color: #e5e7eb; /* gray-200 */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 640px) {
+    .navbar-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .nav-menu {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+    
+    .user-email {
+        /* Hide email on very small screens to save space */
+        display: none; 
+    }
+}
+
