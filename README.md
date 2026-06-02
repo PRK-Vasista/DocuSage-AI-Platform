@@ -1,91 +1,313 @@
-# **DocuSage AI Platform**
+# DocuSage AI Platform
 
-Welcome to DocuSage, a full-stack web application designed for secure user authentication and document processing. This project is built as a multi-service architecture using modern, high-performance tools.
+**Current version:** `v0.3` (Sprint 3 complete)
 
-## **What is DocuSage?**
+DocuSage is a full-stack web application for secure document upload, management, and (in upcoming sprints) AI-powered analysis. It runs as a multi-service Docker Compose stack with a modular FastAPI backend and React frontend.
 
-DocuSage is intended to be a secure platform where users can:
+---
 
-1. **Authenticate** securely via JWT-based login/registration.  
-2. **Upload** documents (e.g., PDFs, text files).  
-3. **Process** those documents using AI/ML analysis (planned for later Sprints).  
-4. **View** and manage the results of the analysis.
+## What is DocuSage?
 
-## **Why This Architecture?**
+DocuSage lets users:
 
-This project uses Docker Compose to manage independent services, providing a reliable, scalable, and isolated development environment.
+1. **Authenticate** via JWT-based registration and login
+2. **Upload** text-based documents (PDF, TXT, DOCX, MD, and similar)
+3. **Manage** documents with list, download, soft-delete, and permanent delete
+4. **Process & analyze** documents with AI *(planned — Sprint 4+)*
+
+---
+
+## Architecture
 
 | Component | Responsibility | Technology |
-| :---- | :---- | :---- |
-| **Frontend** | User Interface (UI) and interaction. | React, JavaScript, Tailwind CSS |
-| **Backend** | API endpoints, business logic, file handling, security (JWT). | FastAPI, Python |
-| **Database** | Persistent storage for user data and application state. | PostgreSQL (with AsyncPG/SQLAlchemy) |
+|-----------|----------------|------------|
+| **Frontend** | UI, auth state, document dashboard | React, JavaScript, CSS |
+| **Backend** | API, business logic, file handling, JWT security | FastAPI, Python 3.10 |
+| **Database** | Users, document metadata, migration history | PostgreSQL 15, SQLAlchemy (async), Alembic |
+| **File storage** | Uploaded document binaries | Docker volume (`user_uploads/`) |
 
-## **Getting Started**
+### Services (Docker Compose)
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+| Service | Container name | Port |
+|---------|----------------|------|
+| Database | `docu-sage-db` | `5432` |
+| Backend | `docu-sage-backend` | `8000` |
+| Frontend | `docu-sage-frontend` | `3000` |
 
-### **Prerequisites**
+---
 
-You need the following software installed on your machine:
+## Current Status
 
-* **Docker:** (Docker Desktop is recommended for Windows/Mac)  
-* **Docker Compose:** (Usually bundled with Docker Desktop)  
-* **Git**
+### Sprint 3 — Complete (`v0.3`)
 
-### **Installation and Setup (From Scratch)**
+- User registration, login, JWT auth, and session persistence
+- Document upload with validation (10 MB per file, 1 GB per user)
+- Allowed types: PDF, TXT, DOCX, MD, and other text-based files
+- Document list, metadata, and download
+- Soft delete (trash) → permanent delete flow
+- Storage quota display in the dashboard
+- Modular backend (`core/`, `services/`, `models/`, `dependencies/`)
+- Modular frontend (`components/`, `hooks/`, `api/`, `config/`)
+- Fault-tolerant Alembic migrations on startup
+- Docker-based automated tests (`pytest`)
 
-1. **Clone the Repository**  
-   git clone \[your-repo-url\] docu-sage  
-   cd docu-sage
+### Upcoming
 
-2. Verify Configuration  
-   Ensure your local copy contains the following structure:  
-   docu-sage/  
-   ├── backend/        \# FastAPI code  
-   ├── frontend/       \# React code  
-   ├── .gitignore  
-   └── docker-compose.yaml
+| Sprint | Version | Focus |
+|--------|---------|-------|
+| Sprint 4 | `v0.4` | Text extraction, background processing, processing status UI |
+| Sprint 5 | `v0.5` | AI summarization and chat with documents |
+| Release | `v1.0.0` | Production-ready first public version |
 
-3. Build and Run Services  
-   The docker-compose.yaml file defines three services (db, backend, frontend). This single command will build the necessary images and start all three containers in the background (-d).  
-   docker compose up \--build \-d
+---
 
-   * *Note: The first run may take several minutes as Docker downloads images and builds the Python and Node environments.*  
-4. Check Service Health  
-   Run the following command to see all running containers:  
-   docker compose ps
+## Project Structure
 
-   You should see docu-sage-db, docu-sage-backend, and docu-sage-frontend all in the running state.  
-5. **Access the Application**  
-   * **Frontend (UI):** Open your browser to: http://localhost:3000  
-   * **Backend (API Docs):** Open your browser to: http://localhost:8000/docs
+```
+DocuSage-AI-Platform/
+├── backend/
+│   ├── app/
+│   │   ├── core/           # Config, exceptions, exception handlers
+│   │   ├── dependencies/   # FastAPI dependencies (auth)
+│   │   ├── models/         # SQLAlchemy ORM models
+│   │   ├── schemas/        # Pydantic request/response schemas
+│   │   ├── services/       # Business logic layer
+│   │   └── routers/        # API route handlers
+│   ├── alembic/            # Database migrations
+│   ├── tests/              # Automated tests
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/     # React UI components
+│   │   ├── hooks/          # Custom hooks (useAuth)
+│   │   ├── api/            # API service layer
+│   │   ├── config/         # Frontend configuration
+│   │   └── utils/          # Formatters and helpers
+│   └── Dockerfile
+├── docker-compose.yaml
+└── README.md
+```
 
-## **Current Status (Sprint 2 Complete)**
+---
 
-The platform currently supports the entire **Authentication Flow**:
+## Getting Started
 
-* New user registration.  
-* User login and JWT token issuance.  
-* Token persistence via local storage on the frontend.  
-* CORS is configured to allow communication between localhost:3000 (frontend) and localhost:8000 (backend).
+### Prerequisites
 
-### **Verification Steps**
+- Docker and Docker Compose
+- Git
 
-1. Navigate to http://localhost:3000.  
-2. Click "Need to register?"  
-3. Create a new user (e.g., user@test.com, password password123). You should see a success message.  
-4. Log in with the newly created credentials. The screen should switch to the "Welcome to DocuSage\!" dashboard.  
-5. Refresh the page (F5). You should remain logged in (token persistence working).
+### 1. Clone the repository
 
-## **Teardown (Stopping the Services)**
+```bash
+git clone https://github.com/PRK-Vasista/DocuSage-AI-Platform.git
+cd DocuSage-AI-Platform
+```
 
-To stop the running services, use:
+### 2. Build and start all services
 
+```bash
+docker compose up --build -d
+```
+
+The first run may take a few minutes while images are built.
+
+### 3. Verify services are running
+
+```bash
+docker compose ps
+```
+
+All three services (`db`, `backend`, `frontend`) should be **running**. The database must be **healthy** before the backend starts.
+
+### 4. Access the application
+
+| URL | Purpose |
+|-----|---------|
+| http://localhost:3000 | Frontend UI |
+| http://localhost:8000/docs | Backend API documentation (Swagger) |
+| http://localhost:8000 | Backend health check |
+
+---
+
+## Manual Testing
+
+There is **no default app login**. Register a new user on first use.
+
+### App login (UI)
+
+1. Open http://localhost:3000
+2. Click **Register** and create an account (e.g. `user@test.com` / `password123`)
+3. Log in and confirm the dashboard loads
+4. Refresh the page — you should remain logged in
+
+### Document management
+
+1. Upload a `.txt` or `.md` file — it should appear under **My Documents**
+2. Check **Storage Usage** updates
+3. Click **Download** — file should download
+4. Click **Delete** — file moves to **Trash**
+5. Open **Trash** tab → **Delete Permanently**
+6. Try uploading an unsupported file (e.g. `.exe`) — should be rejected
+
+### Database credentials (for local DB tools only)
+
+| Setting | Value |
+|---------|-------|
+| Host | `localhost` |
+| Port | `5432` |
+| Database | `docu_sage_db` |
+| User | `user` |
+| Password | `password` |
+
+These are for PostgreSQL access only — **not** the web app login.
+
+---
+
+## Automated Tests (Docker)
+
+Run all backend tests inside the backend container:
+
+```bash
+docker compose build backend
+docker compose run --rm backend pytest -v
+```
+
+Expected: all tests pass.
+
+---
+
+## Viewing Logs
+
+Use **separate terminals** to follow logs continuously:
+
+```bash
+# Terminal 1 — Backend
+docker compose logs -f --timestamps backend
+
+# Terminal 2 — Frontend
+docker compose logs -f --timestamps frontend
+
+# Terminal 3 — Database (optional)
+docker compose logs -f --timestamps db
+```
+
+Press `Ctrl+C` to stop watching. Containers keep running.
+
+---
+
+## Database Migrations (Alembic)
+
+Migrations run automatically when the backend starts. Configuration is controlled via environment variables in `docker-compose.yaml`:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `ENABLE_ALEMBIC_MIGRATIONS` | `true` | Run Alembic on startup |
+| `ENABLE_CREATE_ALL_FALLBACK` | `true` | Fallback to `create_all()` if migrations fail (dev safety net) |
+| `DB_MIGRATION_MAX_RETRIES` | `5` | Retry count when DB is not ready |
+| `DB_MIGRATION_RETRY_SECONDS` | `2` | Delay between retries |
+
+### Check current migration revision
+
+```bash
+docker compose exec backend alembic current
+```
+
+### Manual migration (if needed)
+
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+---
+
+## API Endpoints (Summary)
+
+### Auth — `/api/v1/auth`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/register` | Register and receive JWT |
+| POST | `/login` | Login and receive JWT |
+| GET | `/me` | Get current user (protected) |
+
+### Files — `/api/v1/files`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/upload` | Upload a document (protected) |
+| GET | `/` | List documents (protected) |
+| GET | `/{id}` | Get document metadata (protected) |
+| GET | `/{id}/download` | Download document (protected) |
+| DELETE | `/{id}` | Soft delete — move to trash (protected) |
+| DELETE | `/{id}/permanent` | Permanent delete — trash only (protected) |
+
+Full interactive docs: http://localhost:8000/docs
+
+---
+
+## Upload Limits
+
+| Rule | Limit |
+|------|-------|
+| Max file size | 10 MB per upload |
+| Max storage per user | 1 GB total |
+| Allowed types | PDF, TXT, DOCX, MD, CSV, JSON, XML, HTML, RTF, LOG, and other text-based files |
+
+---
+
+## Teardown and Reset
+
+### Stop services (keep data)
+
+```bash
 docker compose down
+```
 
-To stop and remove **all** persistent data (including your PostgreSQL database volume), use:
+### Full reset — delete all data
 
-docker compose down \--volumes
+```bash
+docker compose down --volumes
+```
 
-**WARNING:** This command will delete all user data stored in the postgres\_data volume.
+**Warning:** This permanently deletes all users, document metadata, and uploaded files.
+
+### Start fresh after reset
+
+```bash
+docker compose up --build -d
+```
+
+Register a new user again after a full reset.
+
+---
+
+## Commit Message Convention
+
+All commits follow this format:
+
+```
+Sprint-<N> | v0.<N>[.<patch>] | <short one-line description>
+```
+
+| Type | Example |
+|------|---------|
+| Sprint feature | `Sprint-3 \| v0.3 \| Document upload, trash flow, Alembic migrations, modular frontend, and Docker tests` |
+| Sprint bug fix | `Sprint-3 \| v0.3.1 \| Fix upload route prefix mismatch` |
+| Final release (future) | `Sprint-8 \| v1.0.0 \| Production release` |
+
+---
+
+## Development Notes
+
+- Backend hot-reloads on code changes (`./backend` is mounted into the container)
+- Frontend hot-reloads on `./frontend/src` changes
+- Secrets and runtime data are excluded via `.gitignore` (`.env`, `user_uploads/`, `.venv/`, etc.)
+- Do **not** commit `.env` files or uploaded documents to Git
+
+---
+
+## License
+
+Private project — all rights reserved.
