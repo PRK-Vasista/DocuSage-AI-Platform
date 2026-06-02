@@ -31,7 +31,10 @@ class Document(Base):
         file_path: Absolute or relative path to the stored file.
         mime_type: Detected or reported MIME type.
         size_bytes: File size in bytes.
-        processing_status: Pipeline state for future AI processing sprints.
+        processing_status: Pipeline state (uploaded, processing, ready, failed).
+        document_summary: Summarized representation of the document (max 1 MB).
+        processing_error: Error detail when processing_status is failed.
+        processed_at: Timestamp when processing completed or failed.
         is_deleted: Soft-delete flag.
         deleted_at: Timestamp when the document was soft-deleted.
         created_at: Upload timestamp.
@@ -57,6 +60,9 @@ class Document(Base):
         default="uploaded",
         nullable=False,
     )
+    document_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    processing_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

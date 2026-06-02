@@ -111,3 +111,27 @@ class DatabaseOperationError(DocuSageError):
     def __init__(self, message: str = "A database operation failed."):
         super().__init__(message, status_code=500)
         logger.error("Database operation error: %s", message)
+
+
+class TextExtractionError(DocuSageError):
+    """Raised when text cannot be extracted from an uploaded document."""
+
+    def __init__(self, message: str = "Failed to extract text from the document."):
+        super().__init__(message, status_code=422)
+        logger.error("Text extraction error: %s", message)
+
+
+class SummarizationError(DocuSageError):
+    """Raised when document summarization fails."""
+
+    def __init__(self, message: str = "Failed to summarize document content."):
+        super().__init__(message, status_code=422)
+        logger.error("Summarization error: %s", message)
+
+
+class DocumentProcessingError(DocuSageError):
+    """Raised when the end-to-end document processing pipeline fails."""
+
+    def __init__(self, message: str = "Document processing failed."):
+        super().__init__(message, status_code=500)
+        logger.error("Document processing error: %s", message)

@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     downloadFile,
+    getDocumentSummary,
     listFiles,
     permanentlyDeleteFile,
     softDeleteFile,
@@ -15,12 +16,19 @@ import {
     MAX_UPLOAD_SIZE_BYTES,
 } from '../../config/appConfig';
 import { formatDateTime, formatFileSize } from '../../utils/formatters';
+import {
+    getProcessingStatusClass,
+    getProcessingStatusLabel,
+    shouldPollDocuments,
+} from '../../utils/processingStatus';
 import Alert from '../shared/Alert';
 import Button from '../shared/Button';
 import './Dashboard.css';
 
+const POLL_INTERVAL_MS = 3000;
+
 /**
- * Render upload, active document list, and trash management views.
+ * Render upload, active document list, trash management, and processing status.
  *
  * @param {object} props
  * @param {string} props.token - JWT bearer token for API calls.
@@ -35,17 +43,22 @@ const Dashboard = ({ token }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
     const [actionDocumentId, setActionDocumentId] = useState(null);
+    const [selectedSummary, setSelectedSummary] = useState(null);
+    const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
     /**
      * Load active and trashed documents from the backend.
+     *
+     * @param {boolean} showLoader - Whether to show the loading indicator.
      */
-    const loadDocuments = useCallback(async () => {
+    const loadDocuments = useCallback(async (showLoader = true) => {
         if (!token) {
             return;
         }
 
-        setIsFetching(true);
-        setStatusAlert(null);
+        if (showLoader) {
+            setIsFetching(true);
+        }
 
         try {
             const [activeResponse, trashResponse] = await Promise.all([
@@ -55,18 +68,18 @@ const Dashboard = ({ token }) => {
 
             setActiveDocuments(activeResponse.documents || []);
             setStorage(activeResponse.storage || null);
-
-            const trashedOnly = (trashResponse.documents || []).filter((doc) => doc.is_deleted);
-            setTrashedDocuments(trashedOnly);
-
-            console.info('[Dashboard] Documents loaded successfully.');
+            setTrashedDocuments(
+                (trashResponse.documents || []).filter((document) => document.is_deleted),
+            );
         } catch (error) {
             console.error('[Dashboard] Failed to load documents:', error);
             setStatusAlert({ type: 'error', message: error.message });
             setActiveDocuments([]);
             setTrashedDocuments([]);
         } finally {
-            setIsFetching(false);
+            if (showLoader) {
+                setIsFetching(false);
+            }
         }
     }, [token]);
 
@@ -74,11 +87,18 @@ const Dashboard = ({ token }) => {
         loadDocuments();
     }, [loadDocuments]);
 
-    /**
-     * Handle file input changes and perform client-side size validation.
-     *
-     * @param {Event} event - File input change event.
-     */
+    useEffect(() => {
+        if (!shouldPollDocuments(activeDocuments)) {
+            return undefined;
+        }
+
+        const intervalId = window.setInterval(() => {
+            loadDocuments(false);
+        }, POLL_INTERVAL_MS);
+
+        return () => window.clearInterval(intervalId);
+    }, [activeDocuments, loadDocuments]);
+
     const handleFileChange = (event) => {
         const file = event.target.files[0] || null;
 
@@ -96,11 +116,6 @@ const Dashboard = ({ token }) => {
         setStatusAlert(null);
     };
 
-    /**
-     * Upload the selected file to the backend.
-     *
-     * @param {Event} event - Form submit event.
-     */
     const handleUpload = async (event) => {
         event.preventDefault();
 
@@ -116,11 +131,11 @@ const Dashboard = ({ token }) => {
             const uploadedDocument = await uploadFile(selectedFile, token);
             setStatusAlert({
                 type: 'success',
-                message: `Uploaded '${uploadedDocument.filename}' successfully.`,
+                message: `Uploaded '${uploadedDocument.filename}'. Processing has started.`,
             });
             setSelectedFile(null);
             event.target.reset();
-            await loadDocuments();
+            await loadDocuments(false);
         } catch (error) {
             console.error('[Dashboard] Upload failed:', error);
             setStatusAlert({ type: 'error', message: error.message });
@@ -129,11 +144,6 @@ const Dashboard = ({ token }) => {
         }
     };
 
-    /**
-     * Soft-delete a document by moving it to trash.
-     *
-     * @param {number} documentId - Document identifier.
-     */
     const handleSoftDelete = async (documentId) => {
         setActionDocumentId(documentId);
         setStatusAlert({ type: 'info', message: 'Moving document to trash...' });
@@ -141,7 +151,7 @@ const Dashboard = ({ token }) => {
         try {
             await softDeleteFile(documentId, token);
             setStatusAlert({ type: 'success', message: 'Document moved to trash.' });
-            await loadDocuments();
+            await loadDocuments(false);
         } catch (error) {
             console.error('[Dashboard] Soft delete failed:', error);
             setStatusAlert({ type: 'error', message: error.message });
@@ -150,11 +160,6 @@ const Dashboard = ({ token }) => {
         }
     };
 
-    /**
-     * Permanently delete a trashed document.
-     *
-     * @param {number} documentId - Document identifier.
-     */
     const handlePermanentDelete = async (documentId) => {
         setActionDocumentId(documentId);
         setStatusAlert({ type: 'info', message: 'Permanently deleting document...' });
@@ -162,7 +167,7 @@ const Dashboard = ({ token }) => {
         try {
             await permanentlyDeleteFile(documentId, token);
             setStatusAlert({ type: 'success', message: 'Document permanently deleted.' });
-            await loadDocuments();
+            await loadDocuments(false);
         } catch (error) {
             console.error('[Dashboard] Permanent delete failed:', error);
             setStatusAlert({ type: 'error', message: error.message });
@@ -171,11 +176,6 @@ const Dashboard = ({ token }) => {
         }
     };
 
-    /**
-     * Download a document through the backend download endpoint.
-     *
-     * @param {object} document - Document metadata object.
-     */
     const handleDownload = async (document) => {
         setActionDocumentId(document.id);
         setStatusAlert({ type: 'info', message: `Downloading '${document.filename}'...` });
@@ -191,12 +191,33 @@ const Dashboard = ({ token }) => {
         }
     };
 
+    const handleViewSummary = async (document) => {
+        setActionDocumentId(document.id);
+        setIsSummaryLoading(true);
+        setSelectedSummary(null);
+        setStatusAlert({ type: 'info', message: `Loading summary for '${document.filename}'...` });
+
+        try {
+            const summaryPayload = await getDocumentSummary(document.id, token);
+            setSelectedSummary(summaryPayload);
+            setStatusAlert(null);
+        } catch (error) {
+            console.error('[Dashboard] Summary fetch failed:', error);
+            setStatusAlert({ type: 'error', message: error.message });
+        } finally {
+            setIsSummaryLoading(false);
+            setActionDocumentId(null);
+        }
+    };
+
     const visibleDocuments = viewMode === 'active' ? activeDocuments : trashedDocuments;
 
     return (
         <div className="dashboard-container">
             <h2 className="dashboard-title">Welcome to DocuSage!</h2>
-            <p className="dashboard-intro">Securely upload and manage your text-based documents.</p>
+            <p className="dashboard-intro">
+                Upload documents for automatic text extraction and summarization.
+            </p>
 
             {storage && (
                 <div className="card storage-card">
@@ -231,6 +252,24 @@ const Dashboard = ({ token }) => {
                     </Button>
                 </form>
             </div>
+
+            {selectedSummary && (
+                <div className="card summary-card">
+                    <div className="summary-card-header">
+                        <h3 className="card-title">Summary: {selectedSummary.filename}</h3>
+                        <Button variant="secondary" size="sm" onClick={() => setSelectedSummary(null)}>
+                            Close
+                        </Button>
+                    </div>
+                    {selectedSummary.processing_status === 'ready' && selectedSummary.document_summary ? (
+                        <p className="summary-text">{selectedSummary.document_summary}</p>
+                    ) : (
+                        <p className="summary-text muted">
+                            {selectedSummary.processing_error || 'Summary is not available yet.'}
+                        </p>
+                    )}
+                </div>
+            )}
 
             <div className="card document-list-card">
                 <div className="document-list-header">
@@ -271,6 +310,7 @@ const Dashboard = ({ token }) => {
                     <ul className="document-list">
                         <li className="list-header">
                             <span className="header-name">File Name</span>
+                            <span className="header-status">Status</span>
                             <span className="header-size">Size</span>
                             <span className="header-uploaded">Uploaded At</span>
                             <span className="header-actions">Actions</span>
@@ -279,11 +319,24 @@ const Dashboard = ({ token }) => {
                         {visibleDocuments.map((document) => (
                             <li key={document.id} className="document-item">
                                 <span className="item-name">{document.filename}</span>
+                                <span className={`status-badge ${getProcessingStatusClass(document.processing_status)}`}>
+                                    {getProcessingStatusLabel(document.processing_status)}
+                                </span>
                                 <span className="item-size">{formatFileSize(document.size_bytes)}</span>
                                 <span className="item-uploaded">{formatDateTime(document.created_at)}</span>
                                 <span className="item-actions">
                                     {viewMode === 'active' ? (
                                         <>
+                                            {document.processing_status === 'ready' && (
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    disabled={actionDocumentId === document.id || isSummaryLoading}
+                                                    onClick={() => handleViewSummary(document)}
+                                                >
+                                                    View Summary
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="secondary"
                                                 size="sm"

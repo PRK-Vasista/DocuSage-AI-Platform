@@ -10,6 +10,7 @@ from .document_schemas import (
     DocumentDeleteResponse,
     DocumentListResponse,
     DocumentResponse,
+    DocumentSummaryResponse,
     StorageQuotaResponse,
 )
 
@@ -20,5 +21,6 @@ __all__ = [
     "DocumentResponse",
     "DocumentListResponse",
     "DocumentDeleteResponse",
+    "DocumentSummaryResponse",
     "StorageQuotaResponse",
 ]

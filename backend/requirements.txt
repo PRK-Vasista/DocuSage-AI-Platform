@@ -9,6 +9,8 @@ pydantic==2.5.3
 pydantic-settings
 email-validator 
 alembic
+pypdf
+python-docx
 pytest
 pytest-asyncio
 httpx

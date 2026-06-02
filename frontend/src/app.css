@@ -353,7 +353,7 @@ padding: 0;
 /* Table Header */
 .list-header {
 display: grid;
-grid-template-columns: 2fr 1fr 1fr 1.5fr;
+grid-template-columns: 2fr 1fr 1fr 1fr 1.8fr;
 font-weight: 700;
 padding: 0.75rem 0;
 border-bottom: 2px solid var(--color-border);
@@ -364,13 +364,72 @@ color: var(--color-primary);
 /* Individual Document Row */
 .document-item {
 display: grid;
-grid-template-columns: 2fr 1fr 1fr 1.5fr;
+grid-template-columns: 2fr 1fr 1fr 1fr 1.8fr;
 padding: 0.75rem 0;
 border-bottom: 1px dashed #e5e7eb;
 align-items: center;
 font-size: 0.95rem;
 cursor: default;
 gap: 0.5rem;
+}
+
+.status-badge {
+display: inline-block;
+padding: 0.2rem 0.55rem;
+border-radius: 999px;
+font-size: 0.75rem;
+font-weight: 700;
+text-transform: capitalize;
+width: fit-content;
+}
+
+.status-uploaded {
+background-color: #e5e7eb;
+color: #374151;
+}
+
+.status-processing {
+background-color: #fef3c7;
+color: #92400e;
+}
+
+.status-ready {
+background-color: #d1fae5;
+color: #065f46;
+}
+
+.status-failed {
+background-color: #fee2e2;
+color: #991b1b;
+}
+
+.status-unknown {
+background-color: #f3f4f6;
+color: #4b5563;
+}
+
+.summary-card {
+border-top: 5px solid var(--color-secondary);
+margin-bottom: 1.5rem;
+}
+
+.summary-card-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 1rem;
+margin-bottom: 1rem;
+}
+
+.summary-text {
+white-space: pre-wrap;
+line-height: 1.6;
+color: var(--color-text-dark);
+margin: 0;
+}
+
+.summary-text.muted {
+color: #6b7280;
 }
 
 .item-actions {

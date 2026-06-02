@@ -1,6 +1,6 @@
 # DocuSage AI Platform
 
-**Current version:** `v0.3` (Sprint 3 complete)
+**Current version:** `v0.4` (Sprint 4 complete)
 
 DocuSage is a full-stack web application for secure document upload, management, and (in upcoming sprints) AI-powered analysis. It runs as a multi-service Docker Compose stack with a modular FastAPI backend and React frontend.
 
@@ -13,7 +13,8 @@ DocuSage lets users:
 1. **Authenticate** via JWT-based registration and login
 2. **Upload** text-based documents (PDF, TXT, DOCX, MD, and similar)
 3. **Manage** documents with list, download, soft-delete, and permanent delete
-4. **Process & analyze** documents with AI *(planned — Sprint 4+)*
+4. **Process & summarize** documents with background extraction and extractive summarization *(Sprint 4)*
+5. **Chat with documents** using AI *(planned — Sprint 5+)*
 
 ---
 
@@ -38,6 +39,17 @@ DocuSage lets users:
 
 ## Current Status
 
+### Sprint 4 — Complete (`v0.4`)
+
+- Background text extraction after upload (PDF, DOCX, plain text) via FastAPI `BackgroundTasks`
+- Extractive summarization of the full document (stdlib — no LLM dependency)
+- Processing pipeline: `uploaded` → `processing` → `ready` / `failed`
+- Document summary stored in DB (max 1 MB); raw extraction capped at 5 MB during processing
+- `GET /files/{id}/summary` endpoint
+- Dashboard status badges, auto-polling, and **View Summary** panel
+- Alembic migration `0002_add_document_processing_fields`
+- New dependencies: `pypdf`, `python-docx` (user-approved)
+
 ### Sprint 3 — Complete (`v0.3`)
 
 - User registration, login, JWT auth, and session persistence
@@ -55,8 +67,7 @@ DocuSage lets users:
 
 | Sprint | Version | Focus |
 |--------|---------|-------|
-| Sprint 4 | `v0.4` | Text extraction, background processing, processing status UI |
-| Sprint 5 | `v0.5` | AI summarization and chat with documents |
+| Sprint 5 | `v0.5` | AI-powered summarization and chat with documents |
 | Release | `v1.0.0` | Production-ready first public version |
 
 ---
@@ -146,10 +157,13 @@ There is **no default app login**. Register a new user on first use.
 
 1. Upload a `.txt` or `.md` file — it should appear under **My Documents**
 2. Check **Storage Usage** updates
-3. Click **Download** — file should download
-4. Click **Delete** — file moves to **Trash**
-5. Open **Trash** tab → **Delete Permanently**
-6. Try uploading an unsupported file (e.g. `.exe`) — should be rejected
+3. Watch the **Status** badge move: `Uploaded` → `Processing` → `Ready` (polls every 3 seconds)
+4. Click **View Summary** when status is `Ready` — summarized document text should appear
+5. Click **Download** — file should download
+6. Click **Delete** — file moves to **Trash**
+7. Open **Trash** tab → **Delete Permanently**
+8. Try uploading an unsupported file (e.g. `.exe`) — should be rejected
+9. Upload a `.pdf` or `.docx` file — confirm extraction and summary work the same way
 
 ### Database credentials (for local DB tools only)
 
@@ -236,9 +250,10 @@ docker compose exec backend alembic upgrade head
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/upload` | Upload a document (protected) |
+| POST | `/upload` | Upload a document; queues background processing (protected) |
 | GET | `/` | List documents (protected) |
 | GET | `/{id}` | Get document metadata (protected) |
+| GET | `/{id}/summary` | Get document summary and processing status (protected) |
 | GET | `/{id}/download` | Download document (protected) |
 | DELETE | `/{id}` | Soft delete — move to trash (protected) |
 | DELETE | `/{id}/permanent` | Permanent delete — trash only (protected) |
@@ -252,6 +267,8 @@ Full interactive docs: http://localhost:8000/docs
 | Rule | Limit |
 |------|-------|
 | Max file size | 10 MB per upload |
+| Max raw extracted text (processing) | 5 MB |
+| Max stored summary in database | 1 MB (summarized, not raw extraction) |
 | Max storage per user | 1 GB total |
 | Allowed types | PDF, TXT, DOCX, MD, CSV, JSON, XML, HTML, RTF, LOG, and other text-based files |
 

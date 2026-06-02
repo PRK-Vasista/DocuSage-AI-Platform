@@ -29,8 +29,11 @@ class AppSettings(BaseSettings):
 
     # --- File Storage ---
     UPLOAD_DIR: str = "user_uploads"
-    MAX_FILE_SIZE_BYTES: int = 10 * 1024 * 1024          # 10 MB per upload
-    MAX_USER_STORAGE_BYTES: int = 1024 * 1024 * 1024    # 1 GB total per user
+    MAX_FILE_SIZE_BYTES: int = 10 * 1024 * 1024              # 10 MB per upload
+    MAX_USER_STORAGE_BYTES: int = 1024 * 1024 * 1024        # 1 GB total per user
+    MAX_EXTRACTED_TEXT_BYTES: int = 5 * 1024 * 1024         # 5 MB raw text during extraction
+    MAX_STORED_SUMMARY_BYTES: int = 1 * 1024 * 1024          # 1 MB summarized text stored in DB
+    SUMMARY_TARGET_CHAR_COUNT: int = 4000                   # Target length for extractive summary
 
     # --- Database Migrations (Alembic) ---
     ENABLE_ALEMBIC_MIGRATIONS: bool = True
@@ -83,3 +86,10 @@ ALLOWED_EXTENSIONS: frozenset[str] = frozenset({
 
 logger.debug("Allowed MIME types: %s", sorted(ALLOWED_MIME_TYPES))
 logger.debug("Allowed extensions: %s", sorted(ALLOWED_EXTENSIONS))
+
+
+# --- Document processing status values ---
+PROCESSING_STATUS_UPLOADED: str = "uploaded"
+PROCESSING_STATUS_PROCESSING: str = "processing"
+PROCESSING_STATUS_READY: str = "ready"
+PROCESSING_STATUS_FAILED: str = "failed"

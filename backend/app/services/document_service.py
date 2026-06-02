@@ -23,7 +23,7 @@ from ..core.exceptions import (
     FileStorageError,
 )
 from ..models.document import Document
-from ..schemas.document_schemas import DocumentListResponse, DocumentResponse
+from ..schemas.document_schemas import DocumentListResponse, DocumentResponse, DocumentSummaryResponse
 from ..services.file_validation_service import validate_upload_file
 from ..services.quota_service import ensure_quota_available, get_storage_quota_summary
 from ..services.storage_service import (
@@ -53,6 +53,9 @@ def _to_document_response(document: Document) -> DocumentResponse:
         mime_type=document.mime_type,
         size_bytes=document.size_bytes,
         processing_status=document.processing_status,
+        document_summary=document.document_summary,
+        processing_error=document.processing_error,
+        processed_at=document.processed_at,
         is_deleted=document.is_deleted,
         deleted_at=document.deleted_at,
         created_at=document.created_at,
@@ -352,6 +355,34 @@ async def soft_delete_document(
         raise DatabaseOperationError("Failed to soft delete document.") from exc
 
     return _to_document_response(document)
+
+
+async def get_document_summary(
+    db: AsyncSession,
+    user_id: int,
+    document_id: int,
+) -> DocumentSummaryResponse:
+    """
+    Retrieve the summarized text for a processed document.
+
+    Args:
+        db: Async SQLAlchemy session.
+        user_id: Authenticated user identifier.
+        document_id: Requested document identifier.
+
+    Returns:
+        DocumentSummaryResponse: Summary payload and processing status.
+    """
+    document = await _get_user_document(db, user_id, document_id)
+    logger.info("Retrieved summary metadata for document_id=%s", document_id)
+    return DocumentSummaryResponse(
+        document_id=document.id,
+        filename=document.original_filename,
+        processing_status=document.processing_status,
+        document_summary=document.document_summary,
+        processing_error=document.processing_error,
+        processed_at=document.processed_at,
+    )
 
 
 async def permanently_delete_document(

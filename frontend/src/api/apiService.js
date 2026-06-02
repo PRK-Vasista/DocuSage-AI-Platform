@@ -187,6 +187,27 @@ export async function permanentlyDeleteFile(documentId, token) {
 }
 
 /**
+ * Fetches summarized text for a processed document.
+ *
+ * @param {number} documentId - Document identifier.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<object>} Summary payload from the backend.
+ */
+export async function getDocumentSummary(documentId, token) {
+    const response = await authorizedFetch(`/files/${documentId}/summary`, {
+        method: 'GET',
+    }, token);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Failed to fetch document summary'));
+    }
+
+    return data;
+}
+
+/**
  * Download a document as a browser file save action.
  *
  * @param {number} documentId - Document identifier.

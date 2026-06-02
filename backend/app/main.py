@@ -48,12 +48,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="DocuSage AI Platform (v1.1 - Document Management)",
+    title="DocuSage AI Platform (v0.4 - Document Processing)",
     description=(
         "Backend service with authentication, document upload, storage quota "
-        "enforcement, and soft/permanent deletion."
+        "enforcement, soft/permanent deletion, and background text extraction "
+        "with summarization."
     ),
-    version="1.1.0",
+    version="0.4.0",
     lifespan=lifespan,
 )
 

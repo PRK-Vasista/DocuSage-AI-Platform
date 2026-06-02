@@ -98,16 +98,32 @@ async def auth_headers(test_user: User) -> dict[str, str]:
 
 
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client(
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> AsyncGenerator[AsyncClient, None]:
     """
     Provide an HTTPX async client with database dependency overrides.
 
+    Background processing is stubbed during API tests because the processing
+    pipeline opens a production PostgreSQL session outside the test SQLite
+    override. Dedicated processing tests invoke the service directly.
+
     Args:
         db_session: Async SQLAlchemy session fixture.
+        monkeypatch: Pytest monkeypatch fixture.
 
     Yields:
         AsyncClient: Configured API test client.
     """
+
+    async def noop_background_processing(document_id: int, db=None) -> None:
+        return
+
+    monkeypatch.setattr(
+        "app.routers.files.process_document_by_id",
+        noop_background_processing,
+    )
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
         yield db_session

@@ -4,7 +4,7 @@ Document file management API routes for DocuSage.
 
 import logging
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, UploadFile
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,8 +15,10 @@ from ..schemas.document_schemas import (
     DocumentDeleteResponse,
     DocumentListResponse,
     DocumentResponse,
+    DocumentSummaryResponse,
 )
 from ..services import document_service
+from ..services.document_processing_service import process_document_by_id
 
 router = APIRouter(tags=["Files"])
 logger = logging.getLogger("files_router")
@@ -25,14 +27,16 @@ logger.setLevel(logging.DEBUG)
 
 @router.post("/upload", response_model=DocumentResponse)
 async def upload_file(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user: AuthenticatedUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentResponse:
     """
-    Upload a new document for the authenticated user.
+    Upload a new document and queue background extraction/summarization.
 
     Args:
+        background_tasks: FastAPI background task scheduler.
         file: Uploaded multipart file.
         current_user: Authenticated user dependency.
         db: Async SQLAlchemy session.
@@ -46,13 +50,21 @@ async def upload_file(
         file.filename,
     )
     try:
-        return await document_service.upload_document(
+        uploaded_document = await document_service.upload_document(
             db=db,
             user_id=current_user["id"],
             file=file,
         )
     except DocuSageError:
         raise
+
+    background_tasks.add_task(process_document_by_id, uploaded_document.id)
+    logger.info(
+        "Queued background processing for document_id=%s, user_id=%s",
+        uploaded_document.id,
+        current_user["id"],
+    )
+    return uploaded_document
 
 
 @router.get("/", response_model=DocumentListResponse)
@@ -114,6 +126,38 @@ async def get_file_metadata(
     )
     try:
         return await document_service.get_document_metadata(
+            db=db,
+            user_id=current_user["id"],
+            document_id=document_id,
+        )
+    except DocuSageError:
+        raise
+
+
+@router.get("/{document_id}/summary", response_model=DocumentSummaryResponse)
+async def get_document_summary(
+    document_id: int,
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentSummaryResponse:
+    """
+    Retrieve summarized text for a user-owned document.
+
+    Args:
+        document_id: Document identifier.
+        current_user: Authenticated user dependency.
+        db: Async SQLAlchemy session.
+
+    Returns:
+        DocumentSummaryResponse: Summary and processing status.
+    """
+    logger.info(
+        "Summary request for document_id=%s by user_id=%s",
+        document_id,
+        current_user["id"],
+    )
+    try:
+        return await document_service.get_document_summary(
             db=db,
             user_id=current_user["id"],
             document_id=document_id,
