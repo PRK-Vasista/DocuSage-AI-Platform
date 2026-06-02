@@ -1,15 +1,110 @@
-# Python/Backend ignores
+# =============================================================================
+# DocuSage AI Platform - Git Ignore Rules
+# Keeps secrets, local tooling, build output, and runtime data out of Git.
+# =============================================================================
+
+# --- Python / Backend ---
 __pycache__/
-*.pyc
-.pytest_cache/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
 .venv/
-/backend/.env # IMPORTANT: Never commit sensitive environment files
+venv/
+env/
+ENV/
 
-# Node/Frontend ignores
-/frontend/node_modules
-/frontend/dist
-/frontend/build
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+*.cover
+*.py,cover
+.hypothesis/
 
-# Docker/DB ignores
-# This volume stores the actual PostgreSQL data on your local machine
+# Type checking / lint caches
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+
+# Packaging
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# --- Environment & Secrets (NEVER commit) ---
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Keys and certificates
+*.pem
+*.key
+*.crt
+credentials.json
+secrets.json
+
+# --- Node / Frontend ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.cache/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+
+# --- Runtime / User Data ---
+# Uploaded documents (local dev or Docker bind mount)
+user_uploads/
+backend/user_uploads/
+
+# --- Docker / Local Database ---
+# Named volume data if ever bind-mounted locally
 postgres_data/
+pgdata/
+
+# Optional local Docker overrides (machine-specific)
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# --- IDE / Editor ---
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Logs (application) ---
+*.log
+logs/

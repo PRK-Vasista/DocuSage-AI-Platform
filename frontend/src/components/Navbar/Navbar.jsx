@@ -1,47 +1,38 @@
-// Navbar.jsx - Component logic without styles
+/**
+ * Top navigation bar for DocuSage.
+ */
 
 import React from 'react';
+import Button from '../shared/Button';
+import './Navbar.css';
 
-const Navbar = ({ isLoggedIn, email, handleLogout, setView }) => {
-    return (
-        <header className="navbar-header">
-            <div className="navbar-container">
-                <h1 className="app-title">DocuSage AI</h1>
-                
-                {isLoggedIn ? (
-                    // --- Logged In View ---
-                    <nav className="nav-menu">
-                        <span className="user-email">
-                            Hello, {email}!
-                        </span>
-                        <button 
-                            onClick={handleLogout}
-                            className="btn btn-red" // Placeholder for btn-red style
-                        >
-                            Logout
-                        </button>
-                    </nav>
-                ) : (
-                    // --- Logged Out View ---
-                    <nav className="nav-menu">
-                        <button
-                            onClick={() => setView('login')}
-                            className="btn btn-secondary" // Placeholder for btn-secondary style
-                        >
-                            Login
-                        </button>
-                        <button
-                            onClick={() => setView('register')}
-                            className="btn btn-primary"
-                        >
-                            Register
-                        </button>
-                    </nav>
-                )}
-            </div>
-        </header>
-    );
-};
+/**
+ * Render the application header and authenticated user actions.
+ *
+ * @param {object} props
+ * @param {boolean} props.isAuthenticated - Whether a valid session exists.
+ * @param {string|null} props.userEmail - Authenticated user's email.
+ * @param {Function} props.logout - Logout handler.
+ */
+const Navbar = ({ isAuthenticated, userEmail, logout }) => (
+    <header className="navbar-header">
+        <div className="navbar-container">
+            <h1 className="app-title">DocuSage AI</h1>
+
+            {isAuthenticated ? (
+                <nav className="nav-menu">
+                    <span className="user-email">Hello, {userEmail}</span>
+                    <Button variant="red" onClick={logout}>
+                        Logout
+                    </Button>
+                </nav>
+            ) : (
+                <nav className="nav-menu">
+                    <span className="user-email">Secure document analysis platform</span>
+                </nav>
+            )}
+        </div>
+    </header>
+);
 
 export default Navbar;
-

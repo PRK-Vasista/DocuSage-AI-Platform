@@ -1,86 +1,238 @@
+"""
+Document file management API routes for DocuSage.
+"""
+
 import logging
-import os
-from pathlib import Path
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi.responses import Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..routers.auth import get_current_user
-from .. import models
-
-# --- Global Logging Configuration ---
-logger = logging.getLogger("files_router")
-
-# --- Configuration ---
-# Define the root directory for saving files. 
-# We'll map this to a Docker Volume later for persistence.
-UPLOAD_DIR = "user_uploads"
-
-# Create the upload directory if it doesn't exist
-Path(UPLOAD_DIR).mkdir(exist_ok=True)
-logger.info(f"File upload directory created/verified: {UPLOAD_DIR}")
-
-# --- Router Setup ---
-router = APIRouter(
-    prefix="/files",
-    tags=["Files"],
+from ..core.exceptions import DocuSageError
+from ..database import get_db
+from ..dependencies.auth import AuthenticatedUser, get_current_user
+from ..schemas.document_schemas import (
+    DocumentDeleteResponse,
+    DocumentListResponse,
+    DocumentResponse,
 )
+from ..services import document_service
 
-# --- Endpoint: Secure File Upload ---
+router = APIRouter(tags=["Files"])
+logger = logging.getLogger("files_router")
+logger.setLevel(logging.DEBUG)
 
-@router.post("/upload")
+
+@router.post("/upload", response_model=DocumentResponse)
 async def upload_file(
     file: UploadFile = File(...),
-    current_user: models.User = Depends(get_current_user)
-):
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentResponse:
     """
-    Accepts a single file upload from an authenticated user.
-    Saves the file to a unique path based on the user's ID.
+    Upload a new document for the authenticated user.
+
+    Args:
+        file: Uploaded multipart file.
+        current_user: Authenticated user dependency.
+        db: Async SQLAlchemy session.
+
+    Returns:
+        DocumentResponse: Metadata for the stored document.
     """
-    
-    # 1. Validation Check: Ensure file type is acceptable
-    if file.content_type not in ["application/pdf", "text/plain", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]:
-        logger.warning(f"Upload rejected: Invalid file type {file.content_type} from user {current_user.email}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported file type: {file.content_type}. Only PDF, TXT, or DOCX are allowed."
-        )
-
-    # 2. Define secure, unique storage path
-    # We create a nested directory structure for security and organization:
-    # UPLOAD_DIR / user_id / filename
-    
-    user_dir = Path(UPLOAD_DIR) / str(current_user.id)
-    user_dir.mkdir(exist_ok=True) # Ensure the user's personal folder exists
-    
-    # Sanitize filename to prevent directory traversal attacks (optional but good practice)
-    safe_filename = file.filename.replace("/", "_").replace("\\", "_")
-    file_path = user_dir / safe_filename
-    
-    logger.info(f"Receiving file '{file.filename}' for user {current_user.email} (ID: {current_user.id}).")
-
-    # 3. Save the file synchronously to disk
+    logger.info(
+        "Upload request received from user_id=%s, filename=%s",
+        current_user["id"],
+        file.filename,
+    )
     try:
-        # FastAPI's UploadFile reads the file in chunks and saves it
-        contents = await file.read()
-        with open(file_path, "wb") as f:
-            f.write(contents)
-        
-        logger.info(f"File saved successfully to: {file_path}")
-
-        # 4. Respond to the client
-        return {
-            "message": "File uploaded successfully",
-            "filename": safe_filename,
-            "path": str(file_path),
-            "user_id": current_user.id
-        }
-
-    except Exception as e:
-        logger.error(f"Error saving file for user {current_user.email}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Could not save file on the server."
+        return await document_service.upload_document(
+            db=db,
+            user_id=current_user["id"],
+            file=file,
         )
-    finally:
-        # Important: Close the file handler
-        await file.close()
+    except DocuSageError:
+        raise
+
+
+@router.get("/", response_model=DocumentListResponse)
+async def list_files(
+    include_deleted: bool = Query(
+        default=False,
+        description="When true, include soft-deleted documents (trash).",
+    ),
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentListResponse:
+    """
+    List documents owned by the authenticated user.
+
+    Args:
+        include_deleted: Whether to include soft-deleted documents.
+        current_user: Authenticated user dependency.
+        db: Async SQLAlchemy session.
+
+    Returns:
+        DocumentListResponse: Document list and storage quota summary.
+    """
+    logger.info(
+        "List request from user_id=%s, include_deleted=%s",
+        current_user["id"],
+        include_deleted,
+    )
+    try:
+        return await document_service.list_user_documents(
+            db=db,
+            user_id=current_user["id"],
+            include_deleted=include_deleted,
+        )
+    except DocuSageError:
+        raise
+
+
+@router.get("/{document_id}", response_model=DocumentResponse)
+async def get_file_metadata(
+    document_id: int,
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentResponse:
+    """
+    Retrieve metadata for a single user-owned document.
+
+    Args:
+        document_id: Document identifier.
+        current_user: Authenticated user dependency.
+        db: Async SQLAlchemy session.
+
+    Returns:
+        DocumentResponse: Document metadata.
+    """
+    logger.info(
+        "Metadata request for document_id=%s by user_id=%s",
+        document_id,
+        current_user["id"],
+    )
+    try:
+        return await document_service.get_document_metadata(
+            db=db,
+            user_id=current_user["id"],
+            document_id=document_id,
+        )
+    except DocuSageError:
+        raise
+
+
+@router.get("/{document_id}/download")
+async def download_file(
+    document_id: int,
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """
+    Download the binary content of a user-owned document.
+
+    Args:
+        document_id: Document identifier.
+        current_user: Authenticated user dependency.
+        db: Async SQLAlchemy session.
+
+    Returns:
+        Response: Raw file bytes with appropriate content headers.
+    """
+    logger.info(
+        "Download request for document_id=%s by user_id=%s",
+        document_id,
+        current_user["id"],
+    )
+    try:
+        content, metadata = await document_service.get_document_download(
+            db=db,
+            user_id=current_user["id"],
+            document_id=document_id,
+        )
+    except DocuSageError:
+        raise
+
+    return Response(
+        content=content,
+        media_type=metadata.mime_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{metadata.filename}"'
+        },
+    )
+
+
+@router.delete("/{document_id}", response_model=DocumentDeleteResponse)
+async def soft_delete_file(
+    document_id: int,
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentDeleteResponse:
+    """
+    Soft-delete a document by moving it to the user's trash.
+
+    Args:
+        document_id: Document identifier.
+        current_user: Authenticated user dependency.
+        db: Async SQLAlchemy session.
+
+    Returns:
+        DocumentDeleteResponse: Deletion confirmation payload.
+    """
+    logger.info(
+        "Soft delete request for document_id=%s by user_id=%s",
+        document_id,
+        current_user["id"],
+    )
+    try:
+        await document_service.soft_delete_document(
+            db=db,
+            user_id=current_user["id"],
+            document_id=document_id,
+        )
+    except DocuSageError:
+        raise
+
+    return DocumentDeleteResponse(
+        message="Document moved to trash.",
+        document_id=document_id,
+        deletion_type="soft",
+    )
+
+
+@router.delete("/{document_id}/permanent", response_model=DocumentDeleteResponse)
+async def permanently_delete_file(
+    document_id: int,
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentDeleteResponse:
+    """
+    Permanently delete a document that has already been soft-deleted.
+
+    Args:
+        document_id: Document identifier.
+        current_user: Authenticated user dependency.
+        db: Async SQLAlchemy session.
+
+    Returns:
+        DocumentDeleteResponse: Permanent deletion confirmation payload.
+    """
+    logger.info(
+        "Permanent delete request for document_id=%s by user_id=%s",
+        document_id,
+        current_user["id"],
+    )
+    try:
+        await document_service.permanently_delete_document(
+            db=db,
+            user_id=current_user["id"],
+            document_id=document_id,
+        )
+    except DocuSageError:
+        raise
+
+    return DocumentDeleteResponse(
+        message="Document permanently deleted.",
+        document_id=document_id,
+        deletion_type="permanent",
+    )

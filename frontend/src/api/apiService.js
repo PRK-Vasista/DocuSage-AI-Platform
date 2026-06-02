@@ -1,142 +1,222 @@
-import { API_BASE_URL } from '../config'; // Assuming you have a config file or define it here
+/**
+ * API service layer for DocuSage frontend.
+ *
+ * All HTTP communication with the backend is centralized here so UI
+ * components remain decoupled from fetch details and endpoint paths.
+ */
 
-// Fallback definition if no config.js exists
-const API_BASE_URL_FALLBACK = 'http://localhost:8000/api/v1'; 
-const BASE_URL = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : API_BASE_URL_FALLBACK;
+import { API_BASE_URL } from '../config/appConfig';
 
 /**
- * Helper to construct authorized fetch calls.
- * @param {string} endpoint - The API endpoint suffix (e.g., '/files/upload').
- * @param {object} options - Fetch options (method, body, headers).
- * @param {string} token - JWT access token.
- * @returns {Promise<Response>}
+ * Parse a FastAPI error response into a readable message.
+ *
+ * @param {object} errorData - Parsed JSON error payload.
+ * @param {number} status - HTTP status code.
+ * @param {string} fallback - Default message if detail is unavailable.
+ * @returns {string} Human-readable error message.
  */
-const authorizedFetch = (endpoint, options = {}, token) => {
-    const defaultHeaders = {
-        'Authorization': `Bearer ${token}`,
-    };
+function extractErrorMessage(errorData, status, fallback) {
+    if (!errorData) {
+        return fallback;
+    }
 
+    if (typeof errorData.detail === 'string') {
+        return errorData.detail;
+    }
+
+    if (Array.isArray(errorData.detail)) {
+        return errorData.detail.map((item) => item.msg || JSON.stringify(item)).join(', ');
+    }
+
+    return `${fallback}: HTTP ${status}`;
+}
+
+/**
+ * Build an authorized fetch request against the DocuSage API.
+ *
+ * @param {string} endpoint - API path suffix such as `/files/upload`.
+ * @param {object} options - Standard fetch options.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<Response>} Raw fetch response.
+ */
+function authorizedFetch(endpoint, options = {}, token) {
     const config = {
         ...options,
         headers: {
-            ...defaultHeaders,
+            Authorization: `Bearer ${token}`,
             ...options.headers,
         },
     };
 
-    return fetch(`${BASE_URL}${endpoint}`, config);
-};
-
-
-// --- AUTHENTICATION API CALLS ---
+    return fetch(`${API_BASE_URL}${endpoint}`, config);
+}
 
 /**
- * Registers a new user.
- * @param {string} email - User email.
- * @param {string} password - User password.
- * @returns {Promise<object>} - Parsed JSON response (User data and token).
+ * Register a new user account.
+ *
+ * @param {string} email - User email address.
+ * @param {string} password - Plain-text password.
+ * @returns {Promise<object>} Token payload from the backend.
  */
 export async function register(email, password) {
-    try {
-        const response = await fetch(`${BASE_URL}/auth/register`, { // Use BASE_URL
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-        });
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+    });
 
-        const data = await response.json();
-        
-        if (!response.ok) {
-            // FastAPI error responses have a 'detail' field
-            throw new Error(data.detail || `Registration failed with status ${response.status}`);
-        }
+    const data = await response.json();
 
-        return data; // Should contain { access_token, token_type }
-    } catch (error) {
-        console.error("API Register Error:", error);
-        throw error;
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Registration failed'));
     }
+
+    return data;
 }
 
 /**
- * Logs in a user and retrieves a JWT token.
- * @param {string} email - User email.
- * @param {string} password - User password.
- * @returns {Promise<object>} - Parsed JSON response (Token data).
+ * Log in an existing user and retrieve a JWT token.
+ *
+ * @param {string} email - User email address.
+ * @param {string} password - Plain-text password.
+ * @returns {Promise<object>} Token payload from the backend.
  */
 export async function login(email, password) {
-    try {
-        const response = await fetch(`${BASE_URL}/auth/login`, { // Use BASE_URL
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-        });
-        
-        const data = await response.json();
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+    });
 
-        if (!response.ok) {
-            // Throw the error detail from the server for display in the UI
-            throw new Error(data.detail || `Login failed with status ${response.status}`);
-        }
+    const data = await response.json();
 
-        return data; // Should contain { access_token, token_type }
-    } catch (error) {
-        console.error("API Login Error:", error);
-        throw error;
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Login failed'));
     }
+
+    return data;
 }
 
-
-// --- FILE MANAGEMENT API CALLS (Existing Code) ---
-
 /**
- * Uploads a file to the backend.
- * @param {File} file - The file object to upload.
- * @param {string} token - JWT access token.
- * @returns {Promise<object>} - Parsed JSON response from the server.
+ * Upload a document for the authenticated user.
+ *
+ * @param {File} file - Browser File object.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<object>} Uploaded document metadata.
  */
 export async function uploadFile(file, token) {
     const formData = new FormData();
     formData.append('file', file);
 
-    try {
-        const response = await authorizedFetch('/files/upload', {
-            method: 'POST',
-            body: formData,
-            headers: {} // Crucial for FormData
-        }, token);
+    const response = await authorizedFetch('/files/upload', {
+        method: 'POST',
+        body: formData,
+    }, token);
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || `Upload failed with status ${response.status}`);
-        }
+    const data = await response.json();
 
-        return await response.json();
-    } catch (error) {
-        console.error("API Upload Error:", error);
-        throw error;
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Upload failed'));
     }
+
+    return data;
 }
 
 /**
- * Fetches the list of files uploaded by the current user.
- * @param {string} token - JWT access token.
- * @returns {Promise<Array<object>>} - List of files.
+ * List documents for the authenticated user.
+ *
+ * @param {string} token - JWT bearer token.
+ * @param {boolean} includeDeleted - Whether to include trashed documents.
+ * @returns {Promise<object>} Document list and storage quota summary.
  */
-export async function listFiles(token) {
-    try {
-        const response = await authorizedFetch('/files/', {
-            method: 'GET',
-        }, token);
+export async function listFiles(token, includeDeleted = false) {
+    const query = includeDeleted ? '?include_deleted=true' : '';
+    const response = await authorizedFetch(`/files/${query}`, {
+        method: 'GET',
+    }, token);
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || `Failed to fetch files with status ${response.status}`);
-        }
+    const data = await response.json();
 
-        return await response.json();
-    } catch (error) {
-        console.error("API Fetch Files Error:", error);
-        throw error;
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Failed to fetch documents'));
     }
+
+    return data;
+}
+
+/**
+ * Soft-delete a document by moving it to trash.
+ *
+ * @param {number} documentId - Document identifier.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<object>} Deletion confirmation payload.
+ */
+export async function softDeleteFile(documentId, token) {
+    const response = await authorizedFetch(`/files/${documentId}`, {
+        method: 'DELETE',
+    }, token);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Soft delete failed'));
+    }
+
+    return data;
+}
+
+/**
+ * Permanently delete a document that is already in trash.
+ *
+ * @param {number} documentId - Document identifier.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<object>} Permanent deletion confirmation payload.
+ */
+export async function permanentlyDeleteFile(documentId, token) {
+    const response = await authorizedFetch(`/files/${documentId}/permanent`, {
+        method: 'DELETE',
+    }, token);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Permanent delete failed'));
+    }
+
+    return data;
+}
+
+/**
+ * Download a document as a browser file save action.
+ *
+ * @param {number} documentId - Document identifier.
+ * @param {string} filename - Filename to use for the downloaded file.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<void>}
+ */
+export async function downloadFile(documentId, filename, token) {
+    const response = await authorizedFetch(`/files/${documentId}/download`, {
+        method: 'GET',
+    }, token);
+
+    if (!response.ok) {
+        let message = 'Download failed';
+        try {
+            const data = await response.json();
+            message = extractErrorMessage(data, response.status, message);
+        } catch (error) {
+            console.error('Failed to parse download error response:', error);
+        }
+        throw new Error(message);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
 }

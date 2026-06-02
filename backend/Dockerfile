@@ -6,8 +6,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code (app/ folder)
+# Copy application code, migrations, and automated tests
 COPY app/ ./app/
+COPY alembic.ini .
+COPY alembic/ ./alembic/
+COPY tests/ ./tests/
+COPY pytest.ini .
 EXPOSE 8000
 
 # Command to run the application (with hot-reloading for development)
