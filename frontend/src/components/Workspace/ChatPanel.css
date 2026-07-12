@@ -1,0 +1,115 @@
+.chat-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+    background: var(--bg);
+}
+
+.chat-panel-header {
+    padding: 0.85rem 1.1rem 0.55rem;
+}
+
+.chat-panel-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--text);
+}
+
+.chat-panel-hint,
+.chat-disabled,
+.chat-muted {
+    margin: 0.3rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.chat-error {
+    margin: 0 1.1rem 0.55rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-size: 0.85rem;
+}
+
+.chat-disabled {
+    margin: 0 1.1rem 0.55rem;
+}
+
+.chat-messages {
+    flex: 1;
+    min-height: 10rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.5rem 1.1rem 0.9rem;
+}
+
+.chat-bubble {
+    max-width: min(42rem, 90%);
+    padding: 0.7rem 0.8rem;
+    border-radius: 0.85rem;
+    border: 1px solid var(--border);
+    background: var(--surface-elevated);
+}
+
+.chat-bubble-user {
+    align-self: flex-end;
+    background: var(--accent-soft);
+    border-color: transparent;
+}
+
+.chat-bubble-assistant {
+    align-self: flex-start;
+}
+
+.chat-role {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.chat-content {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.chat-form {
+    display: flex;
+    gap: 0.55rem;
+    padding: 0.85rem 1.1rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.chat-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 0.7rem;
+    background: var(--surface-elevated);
+    color: var(--text);
+    padding: 0.7rem 0.8rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.chat-input:disabled {
+    opacity: 0.65;
+}

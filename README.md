@@ -1,6 +1,6 @@
 # DocuSage AI Platform
 
-**Current version:** `v0.5` (Sprint 5 complete)
+**Current version:** `v0.6` (enhancement phase)
 
 DocuSage is a full-stack web application for secure document upload, management, and AI-powered analysis. It runs as a multi-service Docker Compose stack with a modular FastAPI backend, React frontend, and an **isolated local AI unit** (no paid API keys).
 
@@ -14,7 +14,8 @@ DocuSage lets users:
 2. **Upload** text-based documents (PDF, TXT, DOCX, MD, and similar)
 3. **Manage** documents with list, download, soft-delete, and permanent delete
 4. **Process & summarize** documents (AI summary via local Ollama; extractive fallback)
-5. **Chat with documents** using the isolated AI unit *(Sprint 5)*
+5. **Chat with documents** using the isolated AI unit
+6. **Workspace UI** with document rail, summary, chat, and light/dark theme *(v0.6 enhancements)*
 
 ---
 
@@ -22,7 +23,7 @@ DocuSage lets users:
 
 | Component | Responsibility | Technology |
 |-----------|----------------|------------|
-| **Frontend** | UI, auth state, document dashboard, chat | React, JavaScript, CSS |
+| **Frontend** | Workspace UI (doc rail + summary/chat), auth, light/dark theme | React, JavaScript, CSS |
 | **Backend** | API, auth, files, chat proxy (no direct LLM calls) | FastAPI, Python 3.10 |
 | **AI Service** | Isolated summarize + chat unit | FastAPI, httpx |
 | **Ollama** | Local LLM runtime (no API key) | `llama3.2:1b` (CPU-friendly) |
@@ -43,45 +44,38 @@ DocuSage lets users:
 
 ## Current Status
 
-### Sprint 5 — Complete (`v0.5`)
+### Enhancement phase — In progress (`v0.6+`)
+
+Post-feature work uses **minor versions** (`v0.6`, `v0.7`, `v0.8`, …) until the first production release. No more sprints.
+
+- Cursor-style workspace: left document rail, right summary + chat *(v0.6)*
+- Light / dark theme with persistence
+- Profile menu + logout in the top bar
+- Collapsible summary + download summary as `.txt`
+- Later enhancement batches continue as `v0.7`, `v0.8`, … as needed
+
+### Feature baseline — Complete (`v0.5`)
 
 - Isolated **AI unit**: `ai-service` + `ollama` containers (backend never talks to Ollama directly)
 - Local LLM via Ollama (`llama3.2:1b`) — **no paid API key**
 - AI summarization in the processing pipeline (extractive fallback if AI unit is down)
 - Per-document chat API: `GET/POST /api/v1/chat/{document_id}`
-- Chat history table + Alembic migration `0003_add_chat_messages`
-- Dashboard **Chat** panel for ready documents
+- Chat history table + Alembic migration `0003_chat_messages`
 - Docker tests with mocked AI (no live model calls in CI)
 
-### Sprint 4 — Complete (`v0.4`)
+### Earlier milestones
 
-- Background text extraction after upload (PDF, DOCX, plain text) via FastAPI `BackgroundTasks`
-- Extractive summarization of the full document (stdlib — no LLM dependency)
-- Processing pipeline: `uploaded` → `processing` → `ready` / `failed`
-- Document summary stored in DB (max 1 MB); raw extraction capped at 5 MB during processing
-- `GET /files/{id}/summary` endpoint
-- Dashboard status badges, auto-polling, and **View Summary** panel
-- Alembic migration `0002_add_document_processing_fields`
-- New dependencies: `pypdf`, `python-docx` (user-approved)
+| Version | Focus |
+|---------|-------|
+| `v0.4` | Text extraction, background processing, extractive summary, status UI |
+| `v0.3` | Auth, upload, trash/permanent delete, quota, modular app, Alembic, Docker tests |
 
-### Sprint 3 — Complete (`v0.3`)
+### Roadmap
 
-- User registration, login, JWT auth, and session persistence
-- Document upload with validation (10 MB per file, 1 GB per user)
-- Allowed types: PDF, TXT, DOCX, MD, and other text-based files
-- Document list, metadata, and download
-- Soft delete (trash) → permanent delete flow
-- Storage quota display in the dashboard
-- Modular backend (`core/`, `services/`, `models/`, `dependencies/`)
-- Modular frontend (`components/`, `hooks/`, `api/`, `config/`)
-- Fault-tolerant Alembic migrations on startup
-- Docker-based automated tests (`pytest`)
-
-### Upcoming
-
-| Sprint | Version | Focus |
-|--------|---------|-------|
-| Release | `v1.0.0` | Production-ready first public version |
+| Version | Focus |
+|---------|-------|
+| `v0.6`, `v0.7`, `v0.8`, … | Enhancement batches (minor bumps) |
+| `v1.0.0` | Production-ready first public release |
 
 ---
 
@@ -108,7 +102,7 @@ DocuSage-AI-Platform/
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── components/     # React UI components (incl. DocumentChat)
+│   │   ├── components/     # TopBar, Workspace, AuthForm, shared UI
 │   │   ├── hooks/          # Custom hooks (useAuth)
 │   │   ├── api/            # API service layer
 │   │   ├── config/         # Frontend configuration
@@ -177,21 +171,20 @@ There is **no default app login**. Register a new user on first use.
 
 1. Open http://localhost:3000
 2. Click **Register** and create an account (e.g. `user@test.com` / `password123`)
-3. Log in and confirm the dashboard loads
-4. Refresh the page — you should remain logged in
+3. Log in — you should land in the **workspace** layout
+4. Use the top-right **Dark/Light** toggle and confirm theme persists after refresh
+5. Open the profile menu → **Log out**
 
-### Document management
+### Workspace (document rail + summary/chat)
 
-1. Upload a `.txt` or `.md` file — it should appear under **My Documents**
-2. Check **Storage Usage** updates
-3. Watch the **Status** badge move: `Uploaded` → `Processing` → `Ready` (polls every 3 seconds)
-4. Click **View Summary** when status is `Ready` — AI summary text should appear
-5. Click **Chat** — ask a question about the document and confirm an answer appears
-6. Click **Download** — file should download
-7. Click **Delete** — file moves to **Trash**
-8. Open **Trash** tab → **Delete Permanently**
-9. Try uploading an unsupported file (e.g. `.exe`) — should be rejected
-10. Upload a `.pdf` or `.docx` file — confirm extraction, summary, and chat work
+1. In the **left panel**, click **Add file** and upload a `.txt` / `.md` / `.pdf` / `.docx`
+2. Watch the status badge: `Uploaded` → `Processing` → `Ready`
+3. Select the document — **right panel** shows **Summary** on top and **Chat** below
+4. Use **Collapse** on the summary if it is long; use **Download summary** to save a `.txt`
+5. Chat about the document in the lower right panel
+6. Use **Active / Trash** in the left rail; **Remove** soft-deletes; trash supports permanent delete
+7. Storage quota appears at the bottom of the left rail
+8. Try uploading an unsupported file (e.g. `.exe`) — should be rejected
 
 ### Database credentials (for local DB tools only)
 
@@ -360,17 +353,18 @@ Register a new user again after a full reset.
 
 ## Commit Message Convention
 
-All commits follow this format:
-
 ```
-Sprint-<N> | v0.<N>[.<patch>] | <short one-line description>
+<type> | <version> | <short message>
 ```
 
-| Type | Example |
-|------|---------|
-| Sprint feature | `Sprint-3 \| v0.3 \| Document upload, trash flow, Alembic migrations, modular frontend, and Docker tests` |
-| Sprint bug fix | `Sprint-3 \| v0.3.1 \| Fix upload route prefix mismatch` |
-| Final release (future) | `Sprint-8 \| v1.0.0 \| Production release` |
+Examples:
+
+```
+Feature | v0.5 | Isolated AI unit with Ollama summarization and chat
+Enhancement | v0.6 | Enhancement of UI with Light/dark theme
+Bug | v0.6.1 | Fix permanent delete when chat messages exist
+Release | v1.0.0 | Production-ready first public release
+```
 
 ---
 

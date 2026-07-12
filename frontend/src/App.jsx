@@ -1,16 +1,16 @@
 /**
  * Root application component for DocuSage.
  *
- * This file intentionally stays thin and only orchestrates layout, routing
- * between authenticated and guest views, and shared shell components.
+ * Orchestrates auth shell, theme, and the workspace layout.
  */
 
 import React from 'react';
 import './app.css';
 import AuthForm from './components/AuthForm/AuthForm';
-import Dashboard from './components/Dashboard/Dashboard';
-import Navbar from './components/Navbar/Navbar';
+import TopBar from './components/TopBar/TopBar';
+import Workspace from './components/Workspace/Workspace';
 import useAuth from './hooks/useAuth';
+import useTheme from './hooks/useTheme';
 
 /**
  * Render the DocuSage application shell.
@@ -26,22 +26,28 @@ const App = () => {
         logout,
     } = useAuth();
 
+    const { theme, toggleTheme } = useTheme();
+
     return (
-        <div className="app-main-layout">
-            <Navbar
+        <div className={`app-shell ${isAuthenticated ? 'is-authenticated' : 'is-guest'}`}>
+            <TopBar
                 isAuthenticated={isAuthenticated}
                 userEmail={userEmail}
                 logout={logout}
+                theme={theme}
+                onToggleTheme={toggleTheme}
             />
 
-            <main className="main-content">
+            <main className="app-main">
                 {isAuthenticated ? (
-                    <Dashboard token={token} />
+                    <Workspace token={token} />
                 ) : (
-                    <AuthForm
-                        authState={{ authError, isLoading }}
-                        authenticate={authenticate}
-                    />
+                    <div className="guest-wrap">
+                        <AuthForm
+                            authState={{ authError, isLoading }}
+                            authenticate={authenticate}
+                        />
+                    </div>
                 )}
             </main>
         </div>
