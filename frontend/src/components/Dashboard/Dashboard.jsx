@@ -23,6 +23,7 @@ import {
 } from '../../utils/processingStatus';
 import Alert from '../shared/Alert';
 import Button from '../shared/Button';
+import DocumentChat from './DocumentChat';
 import './Dashboard.css';
 
 const POLL_INTERVAL_MS = 3000;
@@ -45,6 +46,7 @@ const Dashboard = ({ token }) => {
     const [actionDocumentId, setActionDocumentId] = useState(null);
     const [selectedSummary, setSelectedSummary] = useState(null);
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+    const [chatDocument, setChatDocument] = useState(null);
 
     /**
      * Load active and trashed documents from the backend.
@@ -216,7 +218,7 @@ const Dashboard = ({ token }) => {
         <div className="dashboard-container">
             <h2 className="dashboard-title">Welcome to DocuSage!</h2>
             <p className="dashboard-intro">
-                Upload documents for automatic text extraction and summarization.
+                Upload documents for AI summarization and chat with your files.
             </p>
 
             {storage && (
@@ -269,6 +271,15 @@ const Dashboard = ({ token }) => {
                         </p>
                     )}
                 </div>
+            )}
+
+            {chatDocument && (
+                <DocumentChat
+                    documentId={chatDocument.id}
+                    filename={chatDocument.filename}
+                    token={token}
+                    onClose={() => setChatDocument(null)}
+                />
             )}
 
             <div className="card document-list-card">
@@ -328,14 +339,24 @@ const Dashboard = ({ token }) => {
                                     {viewMode === 'active' ? (
                                         <>
                                             {document.processing_status === 'ready' && (
-                                                <Button
-                                                    variant="primary"
-                                                    size="sm"
-                                                    disabled={actionDocumentId === document.id || isSummaryLoading}
-                                                    onClick={() => handleViewSummary(document)}
-                                                >
-                                                    View Summary
-                                                </Button>
+                                                <>
+                                                    <Button
+                                                        variant="primary"
+                                                        size="sm"
+                                                        disabled={actionDocumentId === document.id || isSummaryLoading}
+                                                        onClick={() => handleViewSummary(document)}
+                                                    >
+                                                        View Summary
+                                                    </Button>
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        disabled={actionDocumentId === document.id}
+                                                        onClick={() => setChatDocument(document)}
+                                                    >
+                                                        Chat
+                                                    </Button>
+                                                </>
                                             )}
                                             <Button
                                                 variant="secondary"

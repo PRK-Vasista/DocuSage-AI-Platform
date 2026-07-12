@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import UploadFile
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +22,7 @@ from ..core.exceptions import (
     DocumentNotSoftDeletedError,
     FileStorageError,
 )
+from ..models.chat_message import ChatMessage
 from ..models.document import Document
 from ..schemas.document_schemas import DocumentListResponse, DocumentResponse, DocumentSummaryResponse
 from ..services.file_validation_service import validate_upload_file
@@ -415,6 +416,17 @@ async def permanently_delete_document(
     file_path = Path(document.file_path)
 
     try:
+        # Delete chat rows first so SQLAlchemy never tries to NULL document_id
+        # on related messages (NOT NULL + FK CASCADE conflict).
+        chat_delete_result = await db.execute(
+            delete(ChatMessage).where(ChatMessage.document_id == document_id)
+        )
+        logger.info(
+            "Deleted %s chat message(s) for document_id=%s before permanent delete",
+            chat_delete_result.rowcount,
+            document_id,
+        )
+
         await db.delete(document)
         await db.commit()
         logger.info(

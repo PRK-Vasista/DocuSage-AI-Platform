@@ -8,6 +8,7 @@ keep database initialization resilient during Docker boot ordering.
 
 import asyncio
 import logging
+import re
 from pathlib import Path
 
 from alembic import command
@@ -15,6 +16,7 @@ from alembic.config import Config
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from ..core.config import app_settings
+from ..core.exceptions import AlembicRevisionIdError
 from ..database import Base, engine
 
 logger = logging.getLogger("services.migration")
@@ -22,6 +24,94 @@ logger.setLevel(logging.DEBUG)
 
 # Alembic configuration file lives at the backend project root (/app in Docker).
 ALEMBIC_INI_PATH = Path(__file__).resolve().parent.parent.parent / "alembic.ini"
+ALEMBIC_VERSIONS_DIR = ALEMBIC_INI_PATH.parent / "alembic" / "versions"
+
+# Matches PostgreSQL alembic_version.version_num VARCHAR(32) default.
+ALEMBIC_REVISION_MAX_LENGTH: int = 32
+
+_REVISION_ID_PATTERN = re.compile(
+    r"^revision\s*(?::\s*str)?\s*=\s*[\"']([^\"']+)[\"']",
+    re.MULTILINE,
+)
+_DOWN_REVISION_ID_PATTERN = re.compile(
+    r"^down_revision\s*(?::\s*[^=]+)?\s*=\s*[\"']([^\"']+)[\"']",
+    re.MULTILINE,
+)
+
+
+def validate_alembic_revision_ids(
+    versions_dir: Path | None = None,
+    max_length: int = ALEMBIC_REVISION_MAX_LENGTH,
+) -> None:
+    """
+    Fail fast when any Alembic revision ID exceeds the DB column limit.
+
+    Alembic stores revision IDs in `alembic_version.version_num` which defaults
+    to VARCHAR(32). Longer IDs cause runtime SQL errors during upgrade.
+
+    Args:
+        versions_dir: Optional override for the migrations directory.
+        max_length: Maximum allowed revision ID character length.
+
+    Raises:
+        AlembicRevisionIdError: If any revision or down_revision ID is too long
+            or a revision assignment is missing/empty.
+        FileNotFoundError: If the versions directory does not exist.
+    """
+    target_dir = versions_dir or ALEMBIC_VERSIONS_DIR
+    if not target_dir.exists():
+        logger.error("Alembic versions directory not found at %s", target_dir)
+        raise FileNotFoundError(f"Missing Alembic versions directory: {target_dir}")
+
+    migration_files = sorted(
+        path for path in target_dir.glob("*.py") if path.name != "__init__.py"
+    )
+
+    if not migration_files:
+        logger.warning("No Alembic migration files found in %s", target_dir)
+        return
+
+    violations: list[str] = []
+
+    for migration_file in migration_files:
+        source = migration_file.read_text(encoding="utf-8")
+        revision_matches = _REVISION_ID_PATTERN.findall(source)
+        down_revision_matches = _DOWN_REVISION_ID_PATTERN.findall(source)
+
+        if not revision_matches:
+            violations.append(f"{migration_file.name}: missing revision ID assignment")
+            continue
+
+        for revision_id in revision_matches:
+            if not revision_id.strip():
+                violations.append(f"{migration_file.name}: empty revision ID")
+            elif len(revision_id) > max_length:
+                violations.append(
+                    f"{migration_file.name}: revision '{revision_id}' "
+                    f"length={len(revision_id)} exceeds max={max_length}"
+                )
+
+        for down_revision_id in down_revision_matches:
+            if len(down_revision_id) > max_length:
+                violations.append(
+                    f"{migration_file.name}: down_revision '{down_revision_id}' "
+                    f"length={len(down_revision_id)} exceeds max={max_length}"
+                )
+
+    if violations:
+        details = "; ".join(violations)
+        message = (
+            "Alembic revision ID validation failed. "
+            f"IDs must be <= {max_length} characters. Details: {details}"
+        )
+        logger.critical(message)
+        raise AlembicRevisionIdError(message)
+
+    logger.info(
+        "Alembic revision ID validation passed for %s migration file(s) (max_length=%s).",
+        len(migration_files),
+        max_length,
+    )
 
 
 def _is_sqlite_database() -> bool:
@@ -74,11 +164,13 @@ def _build_alembic_config() -> Config:
 
 def _run_alembic_upgrade() -> None:
     """
-    Execute `alembic upgrade head` synchronously.
+    Validate revision IDs, then execute `alembic upgrade head` synchronously.
 
     Raises:
+        AlembicRevisionIdError: If any revision ID exceeds the VARCHAR(32) limit.
         Exception: Propagates Alembic failures to the caller for retry handling.
     """
+    validate_alembic_revision_ids()
     alembic_config = _build_alembic_config()
     logger.info("Running Alembic upgrade to head...")
     command.upgrade(alembic_config, "head")
@@ -91,6 +183,7 @@ async def apply_migrations() -> bool:
 
     Docker Compose may start the backend before PostgreSQL is ready to accept
     connections. This method retries migration execution before giving up.
+    Revision ID length errors fail immediately without retry.
 
     Returns:
         bool: True when migrations were applied successfully, False otherwise.
@@ -110,6 +203,12 @@ async def apply_migrations() -> bool:
             )
             await asyncio.to_thread(_run_alembic_upgrade)
             return True
+        except AlembicRevisionIdError as exc:
+            logger.critical(
+                "Refusing to run migrations due to invalid revision ID(s): %s",
+                exc.message,
+            )
+            return False
         except FileNotFoundError as exc:
             logger.critical("Alembic configuration error: %s", exc)
             return False
@@ -180,6 +279,18 @@ async def initialize_database_schema() -> bool:
     Returns:
         bool: True when schema initialization succeeded via Alembic or fallback.
     """
+    # Always validate revision IDs so oversized IDs fail before any DB work.
+    try:
+        validate_alembic_revision_ids()
+    except AlembicRevisionIdError:
+        logger.critical(
+            "Startup aborted: Alembic revision ID(s) exceed the %s-character limit.",
+            ALEMBIC_REVISION_MAX_LENGTH,
+        )
+        return False
+    except FileNotFoundError as exc:
+        logger.critical("Alembic versions directory missing during validation: %s", exc)
+
     migration_success = await apply_migrations()
 
     if migration_success:

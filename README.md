@@ -1,8 +1,8 @@
 # DocuSage AI Platform
 
-**Current version:** `v0.4` (Sprint 4 complete)
+**Current version:** `v0.5` (Sprint 5 complete)
 
-DocuSage is a full-stack web application for secure document upload, management, and (in upcoming sprints) AI-powered analysis. It runs as a multi-service Docker Compose stack with a modular FastAPI backend and React frontend.
+DocuSage is a full-stack web application for secure document upload, management, and AI-powered analysis. It runs as a multi-service Docker Compose stack with a modular FastAPI backend, React frontend, and an **isolated local AI unit** (no paid API keys).
 
 ---
 
@@ -13,8 +13,8 @@ DocuSage lets users:
 1. **Authenticate** via JWT-based registration and login
 2. **Upload** text-based documents (PDF, TXT, DOCX, MD, and similar)
 3. **Manage** documents with list, download, soft-delete, and permanent delete
-4. **Process & summarize** documents with background extraction and extractive summarization *(Sprint 4)*
-5. **Chat with documents** using AI *(planned — Sprint 5+)*
+4. **Process & summarize** documents (AI summary via local Ollama; extractive fallback)
+5. **Chat with documents** using the isolated AI unit *(Sprint 5)*
 
 ---
 
@@ -22,9 +22,11 @@ DocuSage lets users:
 
 | Component | Responsibility | Technology |
 |-----------|----------------|------------|
-| **Frontend** | UI, auth state, document dashboard | React, JavaScript, CSS |
-| **Backend** | API, business logic, file handling, JWT security | FastAPI, Python 3.10 |
-| **Database** | Users, document metadata, migration history | PostgreSQL 15, SQLAlchemy (async), Alembic |
+| **Frontend** | UI, auth state, document dashboard, chat | React, JavaScript, CSS |
+| **Backend** | API, auth, files, chat proxy (no direct LLM calls) | FastAPI, Python 3.10 |
+| **AI Service** | Isolated summarize + chat unit | FastAPI, httpx |
+| **Ollama** | Local LLM runtime (no API key) | `llama3.2:1b` (CPU-friendly) |
+| **Database** | Users, documents, chat history, migrations | PostgreSQL 15, SQLAlchemy, Alembic |
 | **File storage** | Uploaded document binaries | Docker volume (`user_uploads/`) |
 
 ### Services (Docker Compose)
@@ -32,12 +34,24 @@ DocuSage lets users:
 | Service | Container name | Port |
 |---------|----------------|------|
 | Database | `docu-sage-db` | `5432` |
+| Ollama | `docu-sage-ollama` | `11434` |
+| AI Service | `docu-sage-ai` | `8100` |
 | Backend | `docu-sage-backend` | `8000` |
 | Frontend | `docu-sage-frontend` | `3000` |
 
 ---
 
 ## Current Status
+
+### Sprint 5 — Complete (`v0.5`)
+
+- Isolated **AI unit**: `ai-service` + `ollama` containers (backend never talks to Ollama directly)
+- Local LLM via Ollama (`llama3.2:1b`) — **no paid API key**
+- AI summarization in the processing pipeline (extractive fallback if AI unit is down)
+- Per-document chat API: `GET/POST /api/v1/chat/{document_id}`
+- Chat history table + Alembic migration `0003_add_chat_messages`
+- Dashboard **Chat** panel for ready documents
+- Docker tests with mocked AI (no live model calls in CI)
 
 ### Sprint 4 — Complete (`v0.4`)
 
@@ -67,7 +81,6 @@ DocuSage lets users:
 
 | Sprint | Version | Focus |
 |--------|---------|-------|
-| Sprint 5 | `v0.5` | AI-powered summarization and chat with documents |
 | Release | `v1.0.0` | Production-ready first public version |
 
 ---
@@ -82,15 +95,20 @@ DocuSage-AI-Platform/
 │   │   ├── dependencies/   # FastAPI dependencies (auth)
 │   │   ├── models/         # SQLAlchemy ORM models
 │   │   ├── schemas/        # Pydantic request/response schemas
-│   │   ├── services/       # Business logic layer
+│   │   ├── services/       # Business logic + AI client (proxy only)
 │   │   └── routers/        # API route handlers
 │   ├── alembic/            # Database migrations
 │   ├── tests/              # Automated tests
 │   ├── Dockerfile
 │   └── requirements.txt
+├── ai-service/             # Isolated AI unit (summarize + chat)
+│   ├── app/
+│   ├── tests/
+│   ├── Dockerfile
+│   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── components/     # React UI components
+│   │   ├── components/     # React UI components (incl. DocumentChat)
 │   │   ├── hooks/          # Custom hooks (useAuth)
 │   │   ├── api/            # API service layer
 │   │   ├── config/         # Frontend configuration
@@ -122,7 +140,7 @@ cd DocuSage-AI-Platform
 docker compose up --build -d
 ```
 
-The first run may take a few minutes while images are built.
+The first run may take several minutes while images are built and Ollama downloads `llama3.2:1b` (one-time model pull).
 
 ### 3. Verify services are running
 
@@ -130,7 +148,14 @@ The first run may take a few minutes while images are built.
 docker compose ps
 ```
 
-All three services (`db`, `backend`, `frontend`) should be **running**. The database must be **healthy** before the backend starts.
+Services `db`, `ollama`, `ai-service`, `backend`, and `frontend` should be **running**. The database must be **healthy** before the backend starts.
+
+If the first AI summary is slow or fails once, wait for the model pull to finish:
+
+```bash
+docker compose logs -f ai-service
+docker compose exec ollama ollama list
+```
 
 ### 4. Access the application
 
@@ -138,7 +163,9 @@ All three services (`db`, `backend`, `frontend`) should be **running**. The data
 |-----|---------|
 | http://localhost:3000 | Frontend UI |
 | http://localhost:8000/docs | Backend API documentation (Swagger) |
+| http://localhost:8100/docs | AI service API documentation |
 | http://localhost:8000 | Backend health check |
+| http://localhost:8100/api/v1/ai/health | AI unit health |
 
 ---
 
@@ -158,12 +185,13 @@ There is **no default app login**. Register a new user on first use.
 1. Upload a `.txt` or `.md` file — it should appear under **My Documents**
 2. Check **Storage Usage** updates
 3. Watch the **Status** badge move: `Uploaded` → `Processing` → `Ready` (polls every 3 seconds)
-4. Click **View Summary** when status is `Ready` — summarized document text should appear
-5. Click **Download** — file should download
-6. Click **Delete** — file moves to **Trash**
-7. Open **Trash** tab → **Delete Permanently**
-8. Try uploading an unsupported file (e.g. `.exe`) — should be rejected
-9. Upload a `.pdf` or `.docx` file — confirm extraction and summary work the same way
+4. Click **View Summary** when status is `Ready` — AI summary text should appear
+5. Click **Chat** — ask a question about the document and confirm an answer appears
+6. Click **Download** — file should download
+7. Click **Delete** — file moves to **Trash**
+8. Open **Trash** tab → **Delete Permanently**
+9. Try uploading an unsupported file (e.g. `.exe`) — should be rejected
+10. Upload a `.pdf` or `.docx` file — confirm extraction, summary, and chat work
 
 ### Database credentials (for local DB tools only)
 
@@ -181,11 +209,18 @@ These are for PostgreSQL access only — **not** the web app login.
 
 ## Automated Tests (Docker)
 
-Run all backend tests inside the backend container:
+Run backend tests:
 
 ```bash
 docker compose build backend
 docker compose run --rm backend pytest -v
+```
+
+Run AI service tests (Ollama mocked):
+
+```bash
+docker compose build ai-service
+docker compose run --rm ai-service pytest -v
 ```
 
 Expected: all tests pass.
@@ -200,10 +235,16 @@ Use **separate terminals** to follow logs continuously:
 # Terminal 1 — Backend
 docker compose logs -f --timestamps backend
 
-# Terminal 2 — Frontend
+# Terminal 2 — AI service
+docker compose logs -f --timestamps ai-service
+
+# Terminal 3 — Ollama
+docker compose logs -f --timestamps ollama
+
+# Terminal 4 — Frontend
 docker compose logs -f --timestamps frontend
 
-# Terminal 3 — Database (optional)
+# Terminal 5 — Database (optional)
 docker compose logs -f --timestamps db
 ```
 
@@ -258,7 +299,24 @@ docker compose exec backend alembic upgrade head
 | DELETE | `/{id}` | Soft delete — move to trash (protected) |
 | DELETE | `/{id}/permanent` | Permanent delete — trash only (protected) |
 
-Full interactive docs: http://localhost:8000/docs
+### Chat — `/api/v1/chat`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/{document_id}` | Get chat history for a document (protected) |
+| POST | `/{document_id}` | Ask a question about a ready document (protected) |
+
+### AI Service (internal unit) — `/api/v1/ai`
+
+Called by the backend only (not by the browser):
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | AI unit + Ollama health |
+| POST | `/summarize` | Summarize document text |
+| POST | `/chat` | Document-grounded chat completion |
+
+Full interactive docs: http://localhost:8000/docs and http://localhost:8100/docs
 
 ---
 

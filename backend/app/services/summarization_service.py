@@ -1,9 +1,9 @@
 """
 Document summarization service for DocuSage.
 
-Produces a condensed summary of the full extracted document text using an
-extractive summarization approach (no external LLM dependency in Sprint 4).
-The stored summary is capped at MAX_STORED_SUMMARY_BYTES (1 MB).
+Provides a local extractive summarization fallback used when the isolated AI
+unit (ai-service + Ollama) is unavailable. The stored summary is capped at
+MAX_STORED_SUMMARY_BYTES (1 MB).
 """
 
 import logging

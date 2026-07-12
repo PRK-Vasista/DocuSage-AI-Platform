@@ -135,3 +135,35 @@ class DocumentProcessingError(DocuSageError):
     def __init__(self, message: str = "Document processing failed."):
         super().__init__(message, status_code=500)
         logger.error("Document processing error: %s", message)
+
+
+class AlembicRevisionIdError(DocuSageError):
+    """Raised when an Alembic revision ID exceeds the database column limit."""
+
+    def __init__(self, message: str):
+        super().__init__(message, status_code=500)
+        logger.critical("Alembic revision ID validation failed: %s", message)
+
+
+class AIServiceClientError(DocuSageError):
+    """Raised when the isolated AI service unit cannot fulfill a request."""
+
+    def __init__(self, message: str = "AI service request failed."):
+        super().__init__(message, status_code=503)
+        logger.error("AI service client error: %s", message)
+
+
+class DocumentNotReadyError(DocuSageError):
+    """Raised when chat is attempted before processing completes."""
+
+    def __init__(self, message: str = "Document is not ready for chat yet."):
+        super().__init__(message, status_code=409)
+        logger.warning("Document not ready for chat: %s", message)
+
+
+class ChatError(DocuSageError):
+    """Raised when document chat persistence or orchestration fails."""
+
+    def __init__(self, message: str = "Document chat request failed."):
+        super().__init__(message, status_code=500)
+        logger.error("Chat error: %s", message)

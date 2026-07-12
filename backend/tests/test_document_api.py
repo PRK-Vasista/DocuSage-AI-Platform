@@ -106,3 +106,66 @@ async def test_upload_rejects_unsupported_file_type(
         files=files,
     )
     assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_permanent_delete_removes_chat_messages(
+    client: AsyncClient,
+    auth_headers: dict[str, str],
+    db_session,
+    test_user,
+):
+    """Permanent delete must remove related chat messages without FK null errors."""
+    from datetime import datetime, timezone
+
+    from sqlalchemy import select
+
+    from app.core.config import PROCESSING_STATUS_READY
+    from app.models.chat_message import ChatMessage
+    from app.models.document import Document
+
+    document = Document(
+        user_id=test_user.id,
+        original_filename="chat-doc.txt",
+        stored_filename="chat-doc.txt",
+        file_path="user_uploads/1/chat-doc.txt",
+        mime_type="text/plain",
+        size_bytes=20,
+        processing_status=PROCESSING_STATUS_READY,
+        document_summary="Summary for delete test.",
+        processed_at=datetime.now(timezone.utc),
+        is_deleted=True,
+        deleted_at=datetime.now(timezone.utc),
+    )
+    db_session.add(document)
+    await db_session.commit()
+    await db_session.refresh(document)
+
+    db_session.add_all(
+        [
+            ChatMessage(
+                document_id=document.id,
+                user_id=test_user.id,
+                role="user",
+                content="What is this?",
+            ),
+            ChatMessage(
+                document_id=document.id,
+                user_id=test_user.id,
+                role="assistant",
+                content="A test document.",
+            ),
+        ]
+    )
+    await db_session.commit()
+
+    response = await client.delete(
+        f"/api/v1/files/{document.id}/permanent",
+        headers=auth_headers,
+    )
+    assert response.status_code == 200
+
+    remaining = await db_session.execute(
+        select(ChatMessage).where(ChatMessage.document_id == document.id)
+    )
+    assert remaining.scalars().all() == []

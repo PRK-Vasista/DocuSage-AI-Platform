@@ -17,15 +17,61 @@ from ..core.config import (
     PROCESSING_STATUS_FAILED,
     PROCESSING_STATUS_PROCESSING,
     PROCESSING_STATUS_READY,
+    app_settings,
 )
-from ..core.exceptions import DocumentProcessingError, TextExtractionError, SummarizationError
+from ..core.exceptions import (
+    AIServiceClientError,
+    DocumentProcessingError,
+    SummarizationError,
+    TextExtractionError,
+)
 from ..database import AsyncSessionLocal
 from ..models.document import Document
+from ..services.ai_client_service import request_document_summary
 from ..services.summarization_service import summarize_document_text
 from ..services.text_extraction_service import extract_text_from_file
 
 logger = logging.getLogger("services.document_processing")
 logger.setLevel(logging.DEBUG)
+
+
+async def _summarize_with_ai_or_fallback(extracted_text: str) -> str:
+    """
+    Prefer the isolated AI unit for summarization; fall back to extractive.
+
+    Args:
+        extracted_text: Extracted document text (already size-capped).
+
+    Returns:
+        str: Summary text to persist (max 1 MB enforced by extractive helper
+            when fallback is used; AI output is truncated here as a safety net).
+
+    Raises:
+        SummarizationError: If both AI and extractive summarization fail.
+    """
+    try:
+        summary = await request_document_summary(
+            extracted_text,
+            max_chars=app_settings.SUMMARY_TARGET_CHAR_COUNT,
+        )
+        encoded = summary.encode("utf-8")
+        if len(encoded) > app_settings.MAX_STORED_SUMMARY_BYTES:
+            summary = encoded[: app_settings.MAX_STORED_SUMMARY_BYTES].decode(
+                "utf-8",
+                errors="ignore",
+            )
+            logger.warning("AI summary truncated to 1 MB storage limit.")
+        return summary
+    except (AIServiceClientError, SummarizationError) as exc:
+        if not app_settings.AI_FALLBACK_TO_EXTRACTIVE:
+            logger.error("AI summarization failed and fallback is disabled: %s", exc)
+            raise SummarizationError(str(getattr(exc, "message", exc))) from exc
+
+        logger.warning(
+            "AI summarization unavailable (%s). Falling back to extractive summary.",
+            getattr(exc, "message", exc),
+        )
+        return summarize_document_text(extracted_text)
 
 
 async def _update_document_processing_state(
@@ -120,7 +166,7 @@ async def _run_document_processing(db: AsyncSession, document_id: int) -> None:
             mime_type=document.mime_type,
             original_filename=document.original_filename,
         )
-        summary_text = summarize_document_text(extracted_text)
+        summary_text = await _summarize_with_ai_or_fallback(extracted_text)
 
         await _update_document_processing_state(
             db,

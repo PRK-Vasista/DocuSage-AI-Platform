@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .core.exception_handlers import register_exception_handlers
 from .database import init_db
-from .routers import auth, files
+from .routers import auth, chat, files
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -48,13 +48,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="DocuSage AI Platform (v0.4 - Document Processing)",
+    title="DocuSage AI Platform (v0.5 - AI Summarization & Chat)",
     description=(
         "Backend service with authentication, document upload, storage quota "
-        "enforcement, soft/permanent deletion, and background text extraction "
-        "with summarization."
+        "enforcement, soft/permanent deletion, background processing, and "
+        "proxied AI summarization/chat via an isolated AI service unit."
     ),
-    version="0.4.0",
+    version="0.5.0",
     lifespan=lifespan,
 )
 
@@ -74,9 +74,10 @@ app.add_middleware(
 
 register_exception_handlers(app)
 
-logger.info("Including authentication and files routers...")
+logger.info("Including authentication, files, and chat routers...")
 app.include_router(auth.router, prefix="/api/v1/auth")
 app.include_router(files.router, prefix="/api/v1/files")
+app.include_router(chat.router, prefix="/api/v1/chat")
 logger.info("Routers successfully included.")
 
 

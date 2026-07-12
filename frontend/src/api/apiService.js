@@ -208,6 +208,51 @@ export async function getDocumentSummary(documentId, token) {
 }
 
 /**
+ * Fetch chat history for a document.
+ *
+ * @param {number} documentId - Document identifier.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<object>} Chat history payload.
+ */
+export async function getDocumentChatHistory(documentId, token) {
+    const response = await authorizedFetch(`/chat/${documentId}`, {
+        method: 'GET',
+    }, token);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Failed to fetch chat history'));
+    }
+
+    return data;
+}
+
+/**
+ * Ask a question about a document and receive an AI answer.
+ *
+ * @param {number} documentId - Document identifier.
+ * @param {string} question - User question.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<object>} Chat ask response with updated history.
+ */
+export async function askDocumentChat(documentId, question, token) {
+    const response = await authorizedFetch(`/chat/${documentId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+    }, token);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Chat request failed'));
+    }
+
+    return data;
+}
+
+/**
  * Download a document as a browser file save action.
  *
  * @param {number} documentId - Document identifier.

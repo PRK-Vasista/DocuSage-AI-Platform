@@ -33,7 +33,14 @@ class AppSettings(BaseSettings):
     MAX_USER_STORAGE_BYTES: int = 1024 * 1024 * 1024        # 1 GB total per user
     MAX_EXTRACTED_TEXT_BYTES: int = 5 * 1024 * 1024         # 5 MB raw text during extraction
     MAX_STORED_SUMMARY_BYTES: int = 1 * 1024 * 1024          # 1 MB summarized text stored in DB
-    SUMMARY_TARGET_CHAR_COUNT: int = 4000                   # Target length for extractive summary
+    SUMMARY_TARGET_CHAR_COUNT: int = 4000                   # Target / fallback extractive length
+
+    # --- Isolated AI unit (ai-service container) ---
+    AI_SERVICE_URL: str = "http://ai-service:8100"
+    AI_SERVICE_TIMEOUT_SECONDS: float = 180.0
+    AI_SERVICE_ENABLED: bool = True
+    AI_FALLBACK_TO_EXTRACTIVE: bool = True  # Use local extractive summary if AI unit is down
+    CHAT_HISTORY_LIMIT: int = 20
 
     # --- Database Migrations (Alembic) ---
     ENABLE_ALEMBIC_MIGRATIONS: bool = True
