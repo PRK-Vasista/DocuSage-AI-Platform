@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Background document processing service for DocuSage.
 
@@ -32,7 +34,6 @@ from ..services.summarization_service import summarize_document_text
 from ..services.text_extraction_service import extract_text_from_file
 
 logger = logging.getLogger("services.document_processing")
-logger.setLevel(logging.DEBUG)
 
 
 async def _summarize_with_ai_or_fallback(extracted_text: str) -> str:

@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document file management API routes for DocuSage.
 """
@@ -22,7 +24,6 @@ from ..services.document_processing_service import process_document_by_id
 
 router = APIRouter(tags=["Files"])
 logger = logging.getLogger("files_router")
-logger.setLevel(logging.DEBUG)
 
 
 @router.post("/upload", response_model=DocumentResponse)

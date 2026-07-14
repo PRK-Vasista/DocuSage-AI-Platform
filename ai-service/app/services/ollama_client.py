@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 HTTP client for the Ollama runtime container.
 
@@ -14,7 +16,6 @@ from ..core.config import ai_settings
 from ..core.exceptions import OllamaInferenceError, OllamaUnavailableError
 
 logger = logging.getLogger("ai_service.ollama_client")
-logger.setLevel(logging.DEBUG)
 
 
 async def check_ollama_health() -> bool:
@@ -33,6 +34,30 @@ async def check_ollama_health() -> bool:
             return True
     except Exception as exc:
         logger.warning("Ollama health check failed: %s", exc)
+        return False
+
+
+async def is_configured_model_present() -> bool:
+    """
+    Return True when the configured model name appears in Ollama's local list.
+
+    Returns:
+        bool: True if model is listed (warmed/pulled enough to use).
+    """
+    url = f"{ai_settings.OLLAMA_BASE_URL.rstrip('/')}/api/tags"
+    target = ai_settings.OLLAMA_MODEL.lower()
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            models = response.json().get("models") or []
+            for entry in models:
+                name = str(entry.get("name") or "").lower()
+                if name == target or name.startswith(f"{target}:"):
+                    return True
+            return False
+    except Exception as exc:
+        logger.warning("Ollama model list check failed: %s", exc)
         return False
 
 

@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Fault-tolerant Alembic migration runner for DocuSage.
 
@@ -20,7 +22,6 @@ from ..core.exceptions import AlembicRevisionIdError
 from ..database import Base, engine
 
 logger = logging.getLogger("services.migration")
-logger.setLevel(logging.DEBUG)
 
 # Alembic configuration file lives at the backend project root (/app in Docker).
 ALEMBIC_INI_PATH = Path(__file__).resolve().parent.parent.parent / "alembic.ini"

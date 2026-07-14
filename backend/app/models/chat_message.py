@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Chat message ORM model for per-document conversations.
 """
@@ -11,7 +13,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
 logger = logging.getLogger("models.chat_message")
-logger.setLevel(logging.DEBUG)
 
 
 class ChatMessage(Base):

@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document summarization orchestration for the AI service unit.
 """
@@ -9,7 +11,6 @@ from ..core.exceptions import InvalidAIRequestError
 from ..services.ollama_client import generate_completion
 
 logger = logging.getLogger("ai_service.summarize")
-logger.setLevel(logging.DEBUG)
 
 
 def _truncate_context(text: str) -> str:

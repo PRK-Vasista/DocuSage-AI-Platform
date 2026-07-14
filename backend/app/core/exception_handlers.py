@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Global exception handlers for DocuSage domain errors.
 """
@@ -10,7 +12,6 @@ from fastapi.responses import JSONResponse
 from .exceptions import DocuSageError
 
 logger = logging.getLogger("core.exception_handlers")
-logger.setLevel(logging.DEBUG)
 
 
 def register_exception_handlers(app: FastAPI) -> None:

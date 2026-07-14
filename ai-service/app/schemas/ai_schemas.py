@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Pydantic request/response schemas for the AI service.
 """
@@ -57,6 +59,16 @@ class ChatResponse(BaseModel):
 class HealthResponse(BaseModel):
     """Health check payload for the AI service unit."""
 
+    model_config = {"protected_namespaces": ()}
+
     status: str = Field(..., description="Service status.")
     ollama_reachable: bool = Field(..., description="Whether Ollama responded.")
     model: str = Field(..., description="Configured model name.")
+    model_ready: bool = Field(
+        default=False,
+        description="Whether the configured model is present in Ollama.",
+    )
+    message: str = Field(
+        default="",
+        description="Short human-readable readiness hint.",
+    )

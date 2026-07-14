@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document summarization service for DocuSage.
 
@@ -14,7 +16,6 @@ from ..core.config import app_settings
 from ..core.exceptions import SummarizationError
 
 logger = logging.getLogger("services.summarization")
-logger.setLevel(logging.DEBUG)
 
 _STOP_WORDS = frozenset({
     "a", "an", "the", "and", "or", "but", "if", "while", "with", "to", "of", "at",

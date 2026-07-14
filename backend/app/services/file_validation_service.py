@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 File validation service.
 
@@ -19,7 +21,6 @@ from ..core.config import (
 from ..core.exceptions import FileSizeExceededError, UnsupportedFileTypeError
 
 logger = logging.getLogger("services.file_validation")
-logger.setLevel(logging.DEBUG)
 
 
 def _sanitize_filename(filename: str | None) -> str:

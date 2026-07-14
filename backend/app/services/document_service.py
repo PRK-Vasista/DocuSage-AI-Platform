@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document domain service.
 
@@ -35,7 +37,6 @@ from ..services.storage_service import (
 )
 
 logger = logging.getLogger("services.document")
-logger.setLevel(logging.DEBUG)
 
 
 def _to_document_response(document: Document) -> DocumentResponse:

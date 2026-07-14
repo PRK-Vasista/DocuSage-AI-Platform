@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Unit tests for AI service validation and routing (Ollama mocked).
 """
@@ -16,6 +18,14 @@ async def test_health_endpoint(monkeypatch):
         return True
 
     monkeypatch.setattr("app.routers.ai.check_ollama_health", fake_health)
+
+    async def fake_model_present() -> bool:
+        return True
+
+    monkeypatch.setattr(
+        "app.routers.ai.is_configured_model_present",
+        fake_model_present,
+    )
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

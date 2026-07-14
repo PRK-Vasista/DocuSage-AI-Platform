@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Configuration for the DocuSage AI service unit.
 
@@ -10,7 +12,6 @@ import logging
 from pydantic_settings import BaseSettings
 
 logger = logging.getLogger("ai_service.config")
-logger.setLevel(logging.DEBUG)
 
 
 class AIServiceSettings(BaseSettings):
@@ -18,6 +19,8 @@ class AIServiceSettings(BaseSettings):
     Runtime settings for the AI service and its Ollama dependency.
 
     Attributes:
+        APP_ENV: Runtime environment label.
+        LOG_LEVEL: Root logging level name.
         OLLAMA_BASE_URL: Base URL of the Ollama container.
         OLLAMA_MODEL: Local model name to use for inference.
         OLLAMA_TIMEOUT_SECONDS: HTTP timeout for Ollama calls.
@@ -26,6 +29,8 @@ class AIServiceSettings(BaseSettings):
         OLLAMA_PULL_ON_STARTUP: Whether to request a model pull on startup.
     """
 
+    APP_ENV: str = "development"
+    LOG_LEVEL: str = "INFO"
     OLLAMA_BASE_URL: str = "http://ollama:11434"
     OLLAMA_MODEL: str = "llama3.2:1b"
     OLLAMA_TIMEOUT_SECONDS: float = 180.0
@@ -42,7 +47,8 @@ class AIServiceSettings(BaseSettings):
 
 ai_settings = AIServiceSettings()
 logger.info(
-    "AI service settings loaded. ollama=%s model=%s",
+    "AI service settings loaded. env=%s ollama=%s model=%s",
+    ai_settings.APP_ENV,
     ai_settings.OLLAMA_BASE_URL,
     ai_settings.OLLAMA_MODEL,
 )

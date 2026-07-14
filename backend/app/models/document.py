@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document ORM model.
 
@@ -13,7 +15,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
 logger = logging.getLogger("models.document")
-logger.setLevel(logging.DEBUG)
 
 
 class Document(Base):

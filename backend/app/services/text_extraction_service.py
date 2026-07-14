@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Text extraction service for DocuSage documents.
 
@@ -15,7 +17,6 @@ from ..core.config import app_settings
 from ..core.exceptions import TextExtractionError
 
 logger = logging.getLogger("services.text_extraction")
-logger.setLevel(logging.DEBUG)
 
 
 def _enforce_extraction_limit(text: str, source_label: str) -> str:

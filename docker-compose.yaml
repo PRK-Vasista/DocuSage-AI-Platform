@@ -1,19 +1,23 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 services:
   # 1. PostgreSQL Database Service
   db:
     image: postgres:15-alpine
     container_name: docu-sage-db
     restart: always
+    env_file:
+      - .env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d docu_sage_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-docu_sage_db}"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 10s
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: docu_sage_db
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-docu_sage_db}
     ports:
       - "5432:5432"
     volumes:
@@ -43,15 +47,29 @@ services:
       dockerfile: Dockerfile
     container_name: docu-sage-ai
     restart: always
+    env_file:
+      - .env
     environment:
-      OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_MODEL: llama3.2:1b
-      OLLAMA_TIMEOUT_SECONDS: "180"
-      OLLAMA_PULL_ON_STARTUP: "true"
-      MAX_CONTEXT_CHARS: "12000"
-      MAX_SUMMARY_CHARS: "4000"
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+      OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-180}
+      OLLAMA_PULL_ON_STARTUP: ${OLLAMA_PULL_ON_STARTUP:-true}
+      MAX_CONTEXT_CHARS: ${MAX_CONTEXT_CHARS:-12000}
+      MAX_SUMMARY_CHARS: ${MAX_SUMMARY_CHARS:-4000}
     ports:
       - "8100:8100"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/api/v1/ai/health', timeout=5)\"",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 90s
     depends_on:
       ollama:
         condition: service_started
@@ -65,21 +83,43 @@ services:
       dockerfile: Dockerfile
     container_name: docu-sage-backend
     restart: always
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://user:password@db:5432/docu_sage_db
-      SECRET_KEY: "please-change-this-to-a-long-random-string-in-next-sprint"
-      ALGORITHM: "HS256"
-      ENABLE_ALEMBIC_MIGRATIONS: "true"
-      ENABLE_CREATE_ALL_FALLBACK: "true"
-      DB_MIGRATION_MAX_RETRIES: "5"
-      DB_MIGRATION_RETRY_SECONDS: "2"
-      # AI unit (never talk to Ollama directly from backend)
-      AI_SERVICE_URL: http://ai-service:8100
-      AI_SERVICE_TIMEOUT_SECONDS: "180"
-      AI_SERVICE_ENABLED: "true"
-      AI_FALLBACK_TO_EXTRACTIVE: "true"
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://user:password@db:5432/docu_sage_db}
+      SECRET_KEY: ${SECRET_KEY:-please-change-this-to-a-long-random-string-in-next-sprint}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:3000,http://127.0.0.1:3000}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:3000}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      ENABLE_ALEMBIC_MIGRATIONS: ${ENABLE_ALEMBIC_MIGRATIONS:-true}
+      ENABLE_CREATE_ALL_FALLBACK: ${ENABLE_CREATE_ALL_FALLBACK:-true}
+      DB_MIGRATION_MAX_RETRIES: ${DB_MIGRATION_MAX_RETRIES:-5}
+      DB_MIGRATION_RETRY_SECONDS: ${DB_MIGRATION_RETRY_SECONDS:-2}
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://ai-service:8100}
+      AI_SERVICE_TIMEOUT_SECONDS: ${AI_SERVICE_TIMEOUT_SECONDS:-180}
+      AI_SERVICE_ENABLED: ${AI_SERVICE_ENABLED:-true}
+      AI_FALLBACK_TO_EXTRACTIVE: ${AI_FALLBACK_TO_EXTRACTIVE:-true}
     ports:
       - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
     depends_on:
       db:
         condition: service_healthy

@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document chat API routes for DocuSage.
 
@@ -18,7 +20,6 @@ from ..services import chat_service
 
 router = APIRouter(tags=["Chat"])
 logger = logging.getLogger("chat_router")
-logger.setLevel(logging.DEBUG)
 
 
 @router.get("/{document_id}", response_model=ChatHistoryResponse)

@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 HTTP client for the isolated DocuSage AI service unit.
 
@@ -14,7 +16,6 @@ from ..core.config import app_settings
 from ..core.exceptions import AIServiceClientError, SummarizationError
 
 logger = logging.getLogger("services.ai_client")
-logger.setLevel(logging.DEBUG)
 
 
 def _ai_base_url() -> str:
@@ -139,3 +140,30 @@ async def request_document_chat(
 
     logger.info("AI service chat succeeded: answer_chars=%s", len(answer))
     return answer
+
+
+async def check_ai_health() -> dict[str, Any]:
+    """
+    Fetch health status from the isolated AI service.
+
+    Returns:
+        dict: Parsed AI health payload (status, ollama_reachable, model, …).
+
+    Raises:
+        AIServiceClientError: If the AI service cannot be reached.
+    """
+    if not app_settings.AI_SERVICE_ENABLED:
+        return {"status": "disabled", "ollama_reachable": False, "model": None}
+
+    url = f"{_ai_base_url()}/health"
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            return response.json()
+    except httpx.RequestError as exc:
+        logger.warning("AI health unreachable: %s", exc)
+        raise AIServiceClientError("AI service health check failed.") from exc
+    except httpx.HTTPStatusError as exc:
+        logger.warning("AI health HTTP error: %s", exc)
+        raise AIServiceClientError("AI service health check failed.") from exc

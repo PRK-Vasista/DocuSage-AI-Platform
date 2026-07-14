@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Filesystem storage service.
 
@@ -11,7 +13,6 @@ from ..core.config import app_settings
 from ..core.exceptions import FileStorageError
 
 logger = logging.getLogger("services.storage")
-logger.setLevel(logging.DEBUG)
 
 
 def get_upload_root() -> Path:

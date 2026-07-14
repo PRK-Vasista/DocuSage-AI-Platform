@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 HTTP routes for the DocuSage AI service unit.
 """
@@ -16,12 +18,11 @@ from ..schemas.ai_schemas import (
     SummarizeResponse,
 )
 from ..services.chat_service import answer_question
-from ..services.ollama_client import check_ollama_health
+from ..services.ollama_client import check_ollama_health, is_configured_model_present
 from ..services.summarize_service import summarize_text
 
 router = APIRouter(tags=["AI"])
 logger = logging.getLogger("ai_service.router")
-logger.setLevel(logging.DEBUG)
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -33,10 +34,27 @@ async def health() -> HealthResponse:
         HealthResponse: Health payload for orchestration checks.
     """
     ollama_ok = await check_ollama_health()
+    model_ok = await is_configured_model_present() if ollama_ok else False
+
+    if ollama_ok and model_ok:
+        status = "ok"
+        message = "AI unit ready."
+    elif ollama_ok and not model_ok:
+        status = "degraded"
+        message = (
+            f"Ollama is up but model '{ai_settings.OLLAMA_MODEL}' is still "
+            "warming up or being pulled."
+        )
+    else:
+        status = "degraded"
+        message = "Ollama is unreachable."
+
     return HealthResponse(
-        status="ok" if ollama_ok else "degraded",
+        status=status,
         ollama_reachable=ollama_ok,
         model=ai_settings.OLLAMA_MODEL,
+        model_ready=model_ok,
+        message=message,
     )
 
 

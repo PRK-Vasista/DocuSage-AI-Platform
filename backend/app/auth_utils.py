@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 JWT and password utility functions for DocuSage authentication.
 """
@@ -14,7 +16,6 @@ from passlib.context import CryptContext
 from .core.config import app_settings
 
 logger = logging.getLogger("auth_utils")
-logger.setLevel(logging.DEBUG)
 
 # Argon2 is the recommended modern password hashing scheme.
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")

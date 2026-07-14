@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document-related Pydantic schemas.
 """
@@ -9,7 +11,6 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("schemas.document")
-logger.setLevel(logging.DEBUG)
 
 
 class DocumentResponse(BaseModel):

@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 DocuSage AI Service entry point.
 
@@ -17,10 +19,12 @@ from .core.exceptions import AIServiceError
 from .routers import ai as ai_router
 from .services.ollama_client import ensure_model_available
 
+_log_level = getattr(logging, str(ai_settings.LOG_LEVEL).upper(), logging.INFO)
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=_log_level,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     stream=sys.stdout,
+    force=True,
 )
 logger = logging.getLogger("ai_service.main")
 
@@ -57,7 +61,7 @@ app = FastAPI(
         "Isolated AI unit for DocuSage. Provides summarization and "
         "document-grounded chat via a local Ollama runtime."
     ),
-    version="0.6.0",
+    version="0.7.0",
     lifespan=lifespan,
 )
 

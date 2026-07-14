@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Storage quota service.
 
@@ -16,7 +18,6 @@ from ..models.document import Document
 from ..schemas.document_schemas import StorageQuotaResponse
 
 logger = logging.getLogger("services.quota")
-logger.setLevel(logging.DEBUG)
 
 
 async def get_user_storage_usage(db: AsyncSession, user_id: int) -> int:

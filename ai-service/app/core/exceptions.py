@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Domain exceptions for the DocuSage AI service.
 """
@@ -5,7 +7,6 @@ Domain exceptions for the DocuSage AI service.
 import logging
 
 logger = logging.getLogger("ai_service.exceptions")
-logger.setLevel(logging.DEBUG)
 
 
 class AIServiceError(Exception):

@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document chat orchestration service.
 
@@ -24,7 +26,6 @@ from ..schemas.chat_schemas import ChatAskResponse, ChatHistoryResponse, ChatMes
 from ..services.ai_client_service import request_document_chat
 
 logger = logging.getLogger("services.chat")
-logger.setLevel(logging.DEBUG)
 
 
 async def _get_owned_document(

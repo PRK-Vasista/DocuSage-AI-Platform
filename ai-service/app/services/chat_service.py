@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Document-grounded chat orchestration for the AI service unit.
 """
@@ -10,7 +12,6 @@ from ..schemas.ai_schemas import ChatMessage
 from ..services.ollama_client import generate_chat
 
 logger = logging.getLogger("ai_service.chat")
-logger.setLevel(logging.DEBUG)
 
 
 def _truncate_context(text: str) -> str:

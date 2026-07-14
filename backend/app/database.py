@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Database engine, session factory, and initialization helpers.
 """
@@ -10,7 +12,6 @@ from sqlalchemy.orm import DeclarativeBase
 from .core.config import app_settings
 
 logger = logging.getLogger("database")
-logger.setLevel(logging.DEBUG)
 
 logger.info(
     "Database settings loaded. URL host segment: %s",

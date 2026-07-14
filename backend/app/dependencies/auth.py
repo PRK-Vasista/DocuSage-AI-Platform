@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Authentication dependencies for protected API routes.
 """
@@ -15,7 +17,6 @@ from ..core.exceptions import DatabaseOperationError
 from ..database import get_db
 
 logger = logging.getLogger("dependencies.auth")
-logger.setLevel(logging.DEBUG)
 
 
 class AuthenticatedUser(TypedDict):

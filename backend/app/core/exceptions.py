@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Custom domain exceptions for DocuSage.
 
@@ -8,7 +10,6 @@ exception handlers translate them into appropriate HTTP responses.
 import logging
 
 logger = logging.getLogger("core.exceptions")
-logger.setLevel(logging.DEBUG)
 
 
 class DocuSageError(Exception):
