@@ -1,3 +1,5 @@
+/* This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P. */
+
 .topbar {
     position: sticky;
     top: 0;
@@ -121,6 +123,39 @@
     font-size: 0.9rem;
     word-break: break-all;
     color: var(--text);
+}
+
+.profile-dropdown .btn {
+    margin-top: 0.45rem;
+}
+
+.profile-password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 0.55rem 0 0.25rem;
+}
+
+.profile-password-form input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--text);
+    padding: 0.45rem 0.55rem;
+    font-size: 0.85rem;
+}
+
+.profile-password-error {
+    margin: 0;
+    color: #b42318;
+    font-size: 0.78rem;
+}
+
+.profile-password-ok {
+    margin: 0;
+    color: #067647;
+    font-size: 0.78rem;
 }
 
 .topbar-subtitle {

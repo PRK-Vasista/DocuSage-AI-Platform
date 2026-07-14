@@ -61,7 +61,7 @@ app = FastAPI(
         "Isolated AI unit for DocuSage. Provides summarization and "
         "document-grounded chat via a local Ollama runtime."
     ),
-    version="0.8.0",
+    version="0.9.0",
     lifespan=lifespan,
 )
 

@@ -4,7 +4,7 @@
 
 DocuSage helps you upload documents, get clear summaries, and ask questions about your files — all in one secure workspace. AI runs **on your machine** (no paid cloud API key required).
 
-**Current version:** `v0.8.0`
+**Current version:** `v0.9.0`
 
 ---
 
@@ -26,6 +26,8 @@ Typical files: PDF, Word (DOCX), text, Markdown, and similar text-based document
 | Action | Description |
 |--------|-------------|
 | **Register / Log in** | Create your own account (there is no shared default login) |
+| **Change password** | Update your password from the profile menu while signed in |
+| **Forgot password** | Request a reset link when SMTP email is configured |
 | **Add documents** | Upload files from the left-hand document list |
 | **See status** | Uploaded → Processing → Ready (or Failed) |
 | **Read summary** | When Ready, the right panel shows a summary of the whole document |
@@ -58,6 +60,8 @@ Then open: **http://localhost:3000**
 
 > First start can take a few minutes while Docker builds images and the local AI model is prepared.
 
+For a shared machine deploy checklist, see **[PRODUCTION.md](./PRODUCTION.md)**.  
+Release notes: **[CHANGELOG.md](./CHANGELOG.md)**.
 
 ---
 

@@ -1,3 +1,5 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
 """
 Authentication-related Pydantic schemas.
 """
@@ -5,10 +7,9 @@ Authentication-related Pydantic schemas.
 import logging
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 logger = logging.getLogger("schemas.auth")
-logger.setLevel(logging.INFO)
 
 
 class UserCreate(BaseModel):
@@ -37,3 +38,29 @@ class TokenData(BaseModel):
     """Schema for decoded JWT payload data exposed by protected routes."""
 
     email: Optional[str] = None
+
+
+class ChangePasswordRequest(BaseModel):
+    """Authenticated password change payload."""
+
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Forgot-password request payload."""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Reset-password request payload."""
+
+    token: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
+
+
+class MessageResponse(BaseModel):
+    """Generic success message response."""
+
+    message: str

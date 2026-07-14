@@ -1,4 +1,8 @@
 /**
+ * This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+ */
+
+/**
  * Root application component for DocuSage.
  *
  * Orchestrates auth shell, theme, and the workspace layout.
@@ -33,6 +37,7 @@ const App = () => {
             <TopBar
                 isAuthenticated={isAuthenticated}
                 userEmail={userEmail}
+                token={token}
                 logout={logout}
                 theme={theme}
                 onToggleTheme={toggleTheme}

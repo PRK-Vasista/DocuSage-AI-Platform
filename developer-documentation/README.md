@@ -31,4 +31,4 @@ DocuSage-AI-Platform/
 └── developer-documentation/  # This folder
 ```
 
-**Current product version:** `v0.7.0` (friend/local Docker production release)
+**Current product version:** `v0.9.0` (friend/local Docker production release)
