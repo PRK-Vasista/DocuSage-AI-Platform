@@ -1,4 +1,8 @@
 /**
+ * This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+ */
+
+/**
  * Document chat panel for the workspace right pane.
  */
 
@@ -98,7 +102,33 @@ const ChatPanel = ({ documentId, token, enabled }) => {
                 </p>
             )}
 
-            {errorMessage && <p className="chat-error">{errorMessage}</p>}
+            {errorMessage && (
+                <div className="chat-error-row">
+                    <p className="chat-error">{errorMessage}</p>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={isSending || !enabled}
+                        onClick={() => {
+                            setErrorMessage(null);
+                        }}
+                    >
+                        Dismiss
+                    </Button>
+                    {question.trim() && (
+                        <Button
+                            type="button"
+                            variant="primary"
+                            size="sm"
+                            disabled={isSending || !enabled}
+                            onClick={(event) => handleSend(event)}
+                        >
+                            Retry
+                        </Button>
+                    )}
+                </div>
+            )}
 
             <div className="chat-messages" ref={listRef}>
                 {enabled && isLoadingHistory && (

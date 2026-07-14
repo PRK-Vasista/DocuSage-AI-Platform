@@ -1,11 +1,15 @@
 /**
+ * This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+ */
+
+/**
  * API service layer for DocuSage frontend.
  *
  * All HTTP communication with the backend is centralized here so UI
  * components remain decoupled from fetch details and endpoint paths.
  */
 
-import { API_BASE_URL } from '../config/appConfig';
+import { API_BASE_URL, BACKEND_ROOT_URL } from '../config/appConfig';
 
 /**
  * Parse a FastAPI error response into a readable message.
@@ -94,6 +98,95 @@ export async function login(email, password) {
         throw new Error(extractErrorMessage(data, response.status, 'Login failed'));
     }
 
+    return data;
+}
+
+    return data;
+}
+
+/**
+ * Request a password reset email (or development log link).
+ *
+ * @param {string} email - Account email.
+ * @returns {Promise<object>} Message payload.
+ */
+export async function forgotPassword(email) {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Forgot password failed'));
+    }
+
+    return data;
+}
+
+/**
+ * Reset password using a one-time token.
+ *
+ * @param {string} token - Reset token from email/link.
+ * @param {string} newPassword - New password.
+ * @returns {Promise<object>} Message payload.
+ */
+export async function resetPassword(token, newPassword) {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, new_password: newPassword }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Reset password failed'));
+    }
+
+    return data;
+}
+
+/**
+ * Change password for the authenticated user.
+ *
+ * @param {string} currentPassword - Current password.
+ * @param {string} newPassword - New password.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<object>} Message payload.
+ */
+export async function changePassword(currentPassword, newPassword, token) {
+    const response = await authorizedFetch('/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+        }),
+    }, token);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Change password failed'));
+    }
+
+    return data;
+}
+
+/**
+ * Fetch backend aggregate health (DB + AI).
+ *
+ * @returns {Promise<object>} Health payload.
+ */
+export async function fetchBackendHealth() {
+    const response = await fetch(`${BACKEND_ROOT_URL}/health`);
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Health check failed'));
+    }
     return data;
 }
 

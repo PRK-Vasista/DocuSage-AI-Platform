@@ -1,10 +1,15 @@
 /**
+ * This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+ */
+
+/**
  * Cursor-style DocuSage workspace: document rail + summary/chat pane.
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     downloadFile,
+    fetchBackendHealth,
     getDocumentSummary,
     listFiles,
     permanentlyDeleteFile,
@@ -42,6 +47,7 @@ const Workspace = ({ token }) => {
     const [actionDocumentId, setActionDocumentId] = useState(null);
     const [statusMessage, setStatusMessage] = useState(null);
     const [mobileShowDocs, setMobileShowDocs] = useState(true);
+    const [aiHealthBanner, setAiHealthBanner] = useState(null);
 
     const loadDocuments = useCallback(async (showLoader = true) => {
         if (!token) {
@@ -79,6 +85,41 @@ const Workspace = ({ token }) => {
     useEffect(() => {
         loadDocuments();
     }, [loadDocuments]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const pollHealth = async () => {
+            try {
+                const health = await fetchBackendHealth();
+                if (cancelled) {
+                    return;
+                }
+                if (health.ai_service === 'ok' || health.ai_service === 'disabled') {
+                    setAiHealthBanner(null);
+                } else if (health.ai_service === 'degraded') {
+                    setAiHealthBanner(
+                        'AI is warming up or partially available. Summaries may use a simpler fallback; chat may be slow.',
+                    );
+                } else {
+                    setAiHealthBanner(
+                        'AI unit is unreachable right now. Chat may fail until the local model is ready.',
+                    );
+                }
+            } catch (error) {
+                if (!cancelled) {
+                    setAiHealthBanner('Could not reach backend health endpoint.');
+                }
+            }
+        };
+
+        pollHealth();
+        const intervalId = window.setInterval(pollHealth, 15000);
+        return () => {
+            cancelled = true;
+            window.clearInterval(intervalId);
+        };
+    }, []);
 
     useEffect(() => {
         if (!shouldPollDocuments(activeDocuments)) {
@@ -237,6 +278,11 @@ const Workspace = ({ token }) => {
 
     return (
         <div className="workspace">
+            {aiHealthBanner && (
+                <div className="workspace-health-banner" role="status">
+                    {aiHealthBanner}
+                </div>
+            )}
             <div className="workspace-mobile-toggle">
                 <button
                     type="button"

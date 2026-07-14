@@ -72,7 +72,7 @@ services:
       start_period: 90s
     depends_on:
       ollama:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./ai-service:/app
 
@@ -124,7 +124,7 @@ services:
       db:
         condition: service_healthy
       ai-service:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - user_files:/app/user_uploads/
@@ -139,7 +139,8 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     volumes:
       - ./frontend/src:/app/src
 

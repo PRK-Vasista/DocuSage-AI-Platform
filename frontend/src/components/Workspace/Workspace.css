@@ -1,3 +1,5 @@
+/* This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P. */
+
 .workspace {
     display: flex;
     flex-direction: column;
@@ -7,6 +9,14 @@
     background:
         radial-gradient(1200px 500px at 10% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
         var(--bg);
+}
+
+.workspace-health-banner {
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+    color: var(--text);
+    font-size: 0.88rem;
 }
 
 .workspace-mobile-toggle {

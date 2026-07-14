@@ -15,6 +15,7 @@ from sqlalchemy import text
 from .core.config import app_settings
 from .core.exception_handlers import register_exception_handlers
 from .database import AsyncSessionLocal, init_db
+from .middleware.rate_limit import RateLimitMiddleware
 from .routers import auth, chat, files
 from .services import ai_client_service
 
@@ -61,7 +62,7 @@ app = FastAPI(
         "enforcement, soft/permanent deletion, background processing, and "
         "proxied AI summarization/chat via an isolated AI service unit."
     ),
-    version="0.7.0",
+    version="0.8.0",
     lifespan=lifespan,
 )
 
@@ -72,6 +73,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(RateLimitMiddleware)
 
 register_exception_handlers(app)
 

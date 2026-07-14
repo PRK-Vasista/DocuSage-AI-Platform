@@ -1,4 +1,8 @@
 /**
+ * This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+ */
+
+/**
  * Central frontend configuration for DocuSage.
  *
  * Environment-specific values should be injected here so components and API
@@ -7,6 +11,9 @@
 
 /** Base URL for all backend API requests. */
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
+
+/** Backend root (non-/api) for health checks. */
+export const BACKEND_ROOT_URL = process.env.REACT_APP_BACKEND_ROOT_URL || 'http://localhost:8000';
 
 /** Local storage key used for the JWT access token. */
 export const AUTH_TOKEN_KEY = 'token';
