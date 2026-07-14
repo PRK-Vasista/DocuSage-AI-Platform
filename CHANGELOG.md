@@ -4,14 +4,15 @@ This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
 
 All notable changes to DocuSage AI Platform are documented here.
 
-## [1.0.0] — pending
+## [1.0.0] — 2026-07-14
 
-Final release checks only (version tag / checklist confirmation).  
-**No new feature code expected.** Wait for an explicit release command before tagging/pushing `v1.0.0`.
+First stable release of DocuSage — a private document workspace with local AI summaries and chat, ready to run with Docker on your machine or share with friends on a LAN.
+
+Built on the v0.7–v0.9 hardening path: safer secrets, clearer ops, and password self-service.
 
 ## [0.9.0] — 2026-07-14
 
-Auth polish and friend/local production readiness package (almost everything for release).
+Auth polish and friend/local production readiness package.
 
 ### Added
 - Authenticated change-password

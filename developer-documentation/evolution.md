@@ -19,7 +19,7 @@ Early delivery used **sprints**. From **v0.6** onward, work is delivered as **en
 | Secrets & config | **v0.7** | Enhancement | `.env`, production fail-closed secrets, `LOG_LEVEL`, CORS |
 | Reliability & ops | **v0.8** | Enhancement | Healthchecks, rate limits, AI warm-up UX, backup docs |
 | Auth polish | **v0.9** | Enhancement | Change/reset password, friend/local Docker ready |
-| Final checks | **v1.0.0** | Release | Pending — checklist/tag only when commanded (no extra feature push) |
+| First stable release | **v1.0.0** | Release | DocuSage ready to use and share locally |
 
 ---
 
@@ -104,10 +104,11 @@ Sprint-based delivery ended. Further work used enhancement versions through **`v
 - Optional SMTP via stdlib only (no email SDKs)  
 - Mandatory email verification deferred (post-v1)  
 
-### Release v1.0.0 (pending — final checks only)
+### Release v1.0.0
 
-- No additional feature work planned  
-- Confirm checklist in `PRODUCTION.md`, run tests, then tag/push only when explicitly commanded  
+- First stable release of DocuSage  
+- Friend/local Docker target (no public TLS reverse proxy in this release)  
+- Version tags and docs marked current at `v1.0.0`  
 
 ---
 

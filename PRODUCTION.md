@@ -1,4 +1,4 @@
-# Production checklist (v0.9 — friend/local Docker)
+# Production checklist (v1.0.0 — friend/local Docker)
 
 This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
 
@@ -58,7 +58,7 @@ cat docusage-backup.sql | docker compose exec -T db psql -U "$POSTGRES_USER" "$P
 
 Uploaded files volume can be archived with `docker run --rm -v <project>_user_files:/data -v "$PWD":/backup alpine tar czf /backup/user_files.tgz -C /data .`
 
-## Not in this release (deferred past v0.9)
+## Not in v1.0.0 (deferred)
 
 - Public HTTPS / reverse proxy
 - Mandatory email verification on register

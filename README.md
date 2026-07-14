@@ -4,7 +4,7 @@
 
 DocuSage helps you upload documents, get clear summaries, and ask questions about your files — all in one secure workspace. AI runs **on your machine** (no paid cloud API key required).
 
-**Current version:** `v0.9.0`
+**Current version:** `v1.0.0`
 
 ---
 

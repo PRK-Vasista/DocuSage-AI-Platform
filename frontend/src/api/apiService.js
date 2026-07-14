@@ -101,9 +101,6 @@ export async function login(email, password) {
     return data;
 }
 
-    return data;
-}
-
 /**
  * Request a password reset email (or development log link).
  *
