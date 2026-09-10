@@ -4,7 +4,19 @@
 
 DocuSage helps you upload documents, get clear summaries, and ask questions about your files — all in one secure workspace. AI runs **on your machine** (no paid cloud API key required).
 
-**Current version:** `v1.0.0`
+**Current version:** `v1.0.0` (enhancements on `v1.1`)
+
+---
+
+## What DocuSage is / is not
+
+| It **is** | It is **not** |
+|-----------|----------------|
+| Upload → summarize → chat in one workspace | A vector database or “RAG retrieval” product |
+| Chat grounded on the **stored document summary** | Chat over the full raw file or chunk search |
+| Local AI via Ollama (no paid API key) | A hosted multi-tenant SaaS with cloud LLM keys |
+
+Typical files: PDF, Word (DOCX), text, Markdown, and similar text-based documents.
 
 ---
 
@@ -14,10 +26,8 @@ Use DocuSage when you want to:
 
 - Keep important documents in one place
 - Quickly understand a long file through an automatic **summary**
-- **Chat** with a document (ask questions in plain language)
+- **Chat** with a document (ask questions in plain language, using that summary as context)
 - Work in a clean layout with **light** or **dark** mode
-
-Typical files: PDF, Word (DOCX), text, Markdown, and similar text-based documents.
 
 ---
 
@@ -32,7 +42,7 @@ Typical files: PDF, Word (DOCX), text, Markdown, and similar text-based document
 | **See status** | Uploaded → Processing → Ready (or Failed) |
 | **Read summary** | When Ready, the right panel shows a summary of the whole document |
 | **Download summary** | Save the summary as a text file |
-| **Chat** | Ask follow-up questions about the selected document |
+| **Chat** | Ask questions grounded on the document **summary** (not full-file RAG) |
 | **Trash** | Remove files to Trash, or delete permanently from Trash |
 | **Theme** | Switch Light / Dark from the top bar |
 

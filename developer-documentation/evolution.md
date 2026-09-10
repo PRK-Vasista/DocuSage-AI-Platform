@@ -20,6 +20,7 @@ Early delivery used **sprints**. From **v0.6** onward, work is delivered as **en
 | Reliability & ops | **v0.8** | Enhancement | Healthchecks, rate limits, AI warm-up UX, backup docs |
 | Auth polish | **v0.9** | Enhancement | Change/reset password, friend/local Docker ready |
 | First stable release | **v1.0.0** | Release | DocuSage ready to use and share locally |
+| Post-v1 honesty & quality | **v1.1** | Enhancement | Docs match summary-grounded chat; eval, CI, retries (in progress) |
 
 ---
 
@@ -109,6 +110,19 @@ Sprint-based delivery ended. Further work used enhancement versions through **`v
 - First stable release of DocuSage  
 - Friend/local Docker target (no public TLS reverse proxy in this release)  
 - Version tags and docs marked current at `v1.0.0`  
+
+### Enhancement v1.1 — Honesty, metrics, reliability (ongoing)
+
+Shipped as small Improvements (each committed separately):
+
+1. Truthful docs + Mermaid architecture/sequence (summary-grounded chat, not RAG)  
+2. Latency logging on summarize/chat  
+3. Eval harness + baseline metrics  
+4. Processing retries + clearer Failed status  
+5. Expanded tests + GitHub Actions CI  
+6. Demo / verify / backup scripts  
+
+**Not in v1.1:** vector RAG, Redis queues, OpenTelemetry.
 
 ---
 
