@@ -20,7 +20,7 @@ Early delivery used **sprints**. From **v0.6** onward, work is delivered as **en
 | Reliability & ops | **v0.8** | Enhancement | Healthchecks, rate limits, AI warm-up UX, backup docs |
 | Auth polish | **v0.9** | Enhancement | Change/reset password, friend/local Docker ready |
 | First stable release | **v1.0.0** | Release | DocuSage ready to use and share locally |
-| Post-v1 honesty & quality | **v1.1** | Enhancement | Docs match summary-grounded chat; eval, CI, retries (in progress) |
+| Post-v1 honesty & quality | **v1.1** | Enhancement | Docs, eval, retries, CI (Improvements 1–5); demo/ops next |
 
 ---
 

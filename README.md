@@ -135,6 +135,8 @@ Architecture, services, APIs, tests, and project history are documented separate
 
 → **[developer-documentation/](./developer-documentation/)**
 
+CI runs backend, AI-service, and eval unit tests on every push/PR to `main` (see `.github/workflows/ci.yml`).
+
 ---
 
 ## License & copyright

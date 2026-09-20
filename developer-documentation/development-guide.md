@@ -91,6 +91,31 @@ docker compose build ai-service
 docker compose run --rm ai-service pytest -v
 ```
 
+Eval harness metric helpers (no Ollama):
+
+```bash
+cd evals && PYTHONPATH=. pytest test_metrics.py -q
+```
+
+### Continuous Integration
+
+GitHub Actions runs on every push and pull request to `main` (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
+
+| Job | What it checks |
+|-----|----------------|
+| Backend pytest | `compileall` + full backend suite (SQLite in-memory) |
+| AI service pytest | `compileall` + AI routes with mocked Ollama |
+| Eval unit tests | Offline metric helpers under `evals/` |
+| Frontend JS syntax | ESM parse check (`node --input-type=module --check`) on plain `.js` modules |
+
+Local equivalent of the CI backend job:
+
+```bash
+cd backend
+python -m compileall -q app
+ENABLE_ALEMBIC_MIGRATIONS=false ENABLE_CREATE_ALL_FALLBACK=true PYTHONPATH=. pytest -q
+```
+
 ---
 
 ## Database migrations (Alembic)
@@ -135,6 +160,7 @@ docker compose exec backend alembic upgrade head
 | GET | `/{id}` | Metadata |
 | GET | `/{id}/summary` | Summary + status |
 | GET | `/{id}/download` | Download original |
+| POST | `/{id}/reprocess` | Retry processing (failed / uploaded only) |
 | DELETE | `/{id}` | Soft delete |
 | DELETE | `/{id}/permanent` | Permanent delete (trash only) |
 
