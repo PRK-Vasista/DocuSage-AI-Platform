@@ -1,6 +1,6 @@
 {
   "name": "docu-sage-frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Frontend application for DocuSage using React and Tailwind CSS.",
   "main": "index.js",
   "scripts": {

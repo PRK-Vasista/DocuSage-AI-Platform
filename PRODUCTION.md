@@ -1,4 +1,4 @@
-# Production checklist (v1.1 — friend/local Docker)
+# Production checklist (v2.0.0 — friend/local Docker)
 
 This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
 

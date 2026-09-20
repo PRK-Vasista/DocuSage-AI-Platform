@@ -62,7 +62,7 @@ app = FastAPI(
         "enforcement, soft/permanent deletion, background processing, and "
         "proxied AI summarization/chat via an isolated AI service unit."
     ),
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 

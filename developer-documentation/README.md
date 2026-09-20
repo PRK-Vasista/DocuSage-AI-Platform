@@ -34,4 +34,4 @@ DocuSage-AI-Platform/
 └── developer-documentation/  # This folder
 ```
 
-**Current product version:** `v1.1` (base release `v1.0.0` + honesty, eval, retries, CI)
+**Current product version:** `v2.0.0`

@@ -20,7 +20,7 @@ Early delivery used **sprints**. From **v0.6** onward, work is delivered as **en
 | Reliability & ops | **v0.8** | Enhancement | Healthchecks, rate limits, AI warm-up UX, backup docs |
 | Auth polish | **v0.9** | Enhancement | Change/reset password, friend/local Docker ready |
 | First stable release | **v1.0.0** | Release | DocuSage ready to use and share locally |
-| Post-v1 honesty & quality | **v1.1** | Enhancement | Docs, eval, latency logs, processing retries, CI |
+| Quality & honesty | **v2.0.0** | Release | Docs, eval, latency logs, processing retries, CI |
 
 ---
 
@@ -111,9 +111,9 @@ Sprint-based delivery ended. Further work used enhancement versions through **`v
 - Friend/local Docker target (no public TLS reverse proxy in this release)  
 - Version tags and docs marked current at `v1.0.0`  
 
-### Enhancement v1.1 — Honesty, metrics, reliability
+### Enhancement stream that became v2.0.0
 
-Shipped as small Improvements (each committed separately on `main`):
+Work landed as small commits after `v1.0.0`, then released as **`v2.0.0`**:
 
 1. **Truthful docs + Mermaid** — README “is / is not”; architecture + upload→Ready→chat sequence; summary-grounded chat (not RAG)  
 2. **Latency logging** — `duration_ms` on summarize/chat in backend AI client and ai-service / Ollama path  
@@ -121,9 +121,12 @@ Shipped as small Improvements (each committed separately on `main`):
 4. **Processing reliability** — AI summarize retries + extractive fallback; clearer `processing_error`; `POST /files/{id}/reprocess` + Retry in the UI  
 5. **CI + tests** — GitHub Actions (backend, ai-service, evals, JS syntax); auth/health/rate-limit coverage  
 
-**Still planned (not shipped yet):** demo / verify / backup helper scripts.
+### Release v2.0.0
 
-**Not in v1.1:** vector RAG, Redis queues, OpenTelemetry.
+- Tags the quality/honesty work above as the current stable release  
+- Friend/local Docker target unchanged (no public TLS reverse proxy)  
+- Demo/ops helper scripts intentionally skipped  
+- **Not included:** vector RAG, Redis queues, OpenTelemetry  
 
 ---
 

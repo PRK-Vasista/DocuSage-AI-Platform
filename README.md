@@ -4,7 +4,7 @@
 
 DocuSage helps you upload documents, get clear summaries, and ask questions about your files — all in one secure workspace. AI runs **on your machine** (no paid cloud API key required).
 
-**Current version:** `v1.1` (first stable base: `v1.0.0`)
+**Current version:** `v2.0.0`
 
 ---
 
@@ -76,9 +76,9 @@ Product history for developers: **[developer-documentation/evolution.md](./devel
 
 ---
 
-## What’s in v1.1
+## What’s new in v2.0.0
 
-Built on top of the `v1.0.0` friend/local Docker release:
+Quality and honesty release on top of the `v1.0.0` friend/local Docker product:
 
 | Area | What you get |
 |------|----------------|
@@ -88,7 +88,7 @@ Built on top of the `v1.0.0` friend/local Docker release:
 | Processing reliability | AI summarize retries, clearer Failed errors, **Retry processing** in the UI |
 | CI | GitHub Actions on push/PR to `main` (backend, AI service, evals, JS syntax) |
 
-Still out of scope for v1.1: vector RAG, Redis queues, OpenTelemetry.
+Out of scope for this release: vector RAG, Redis queues, OpenTelemetry.
 
 ---
 
