@@ -75,6 +75,30 @@ Release notes: **[CHANGELOG.md](./CHANGELOG.md)**.
 
 ---
 
+## Baseline metrics (eval harness)
+
+DocuSage includes an offline eval suite under [`evals/`](./evals/) (no new dependencies).
+
+| Metric | Offline harness (stub answers) | Notes |
+|--------|----------------------------------|-------|
+| Groundedness proxy | **100%** | Token overlap of answer with context |
+| Abstention on unanswerable | **100%** | Refusal-style replies |
+| Golden items | **30** Q&A across 3 sample docs | See `evals/fixtures/golden_qa.json` |
+
+These offline numbers validate the **harness**. They are **not** live `llama3.2:1b` quality scores.
+
+```bash
+# Harness / metric check (no Ollama)
+python3 evals/run_eval.py
+
+# Against a running ai-service (optional)
+python3 evals/run_eval.py --mode live --ai-url http://localhost:8100
+```
+
+Latest committed report: [`evals/latest_report.md`](./evals/latest_report.md).
+
+---
+
 ## Limits (good to know)
 
 | Limit | Value |

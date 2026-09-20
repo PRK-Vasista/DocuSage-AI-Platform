@@ -1,0 +1,9 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
+Project Atlas ships three modules: Intake, Review, and Archive. Intake accepts
+PDF and DOCX uploads only. Review assigns each file to a human owner within
+24 hours. Archive stores approved files for seven years.
+
+The Atlas SLA for first response is four hours on business days. Escalations
+go to the on-call engineer named Maya Chen. The maximum concurrent Review
+workers is twelve. Atlas does not process video files in version 2.1.

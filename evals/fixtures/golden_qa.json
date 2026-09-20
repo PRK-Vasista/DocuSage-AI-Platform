@@ -1,0 +1,216 @@
+{
+  "version": 1,
+  "description": "Golden Q&A for summary-grounded chat proxies (not formal NLI).",
+  "items": [
+    {
+      "id": "doc1-q01",
+      "doc": "docusage_overview.txt",
+      "question": "What does DocuSage help users do?",
+      "answerable": true,
+      "must_include_any": ["upload", "summary", "questions", "workspace"]
+    },
+    {
+      "id": "doc1-q02",
+      "doc": "docusage_overview.txt",
+      "question": "Are answers based on vector RAG over the full file?",
+      "answerable": true,
+      "must_include_any": ["summary", "not", "vector", "retrieval"]
+    },
+    {
+      "id": "doc1-q03",
+      "doc": "docusage_overview.txt",
+      "question": "Which local model is mentioned?",
+      "answerable": true,
+      "must_include_any": ["llama3.2", "1b", "ollama"]
+    },
+    {
+      "id": "doc1-q04",
+      "doc": "docusage_overview.txt",
+      "question": "Is a paid API key required?",
+      "answerable": true,
+      "must_include_any": ["no", "paid", "key"]
+    },
+    {
+      "id": "doc1-q05",
+      "doc": "docusage_overview.txt",
+      "question": "What is the per-file size limit?",
+      "answerable": true,
+      "must_include_any": ["10", "mb"]
+    },
+    {
+      "id": "doc1-q06",
+      "doc": "docusage_overview.txt",
+      "question": "What is the per-account storage quota?",
+      "answerable": true,
+      "must_include_any": ["1", "gb"]
+    },
+    {
+      "id": "doc1-q07",
+      "doc": "docusage_overview.txt",
+      "question": "What happens before permanent deletion?",
+      "answerable": true,
+      "must_include_any": ["trash", "soft"]
+    },
+    {
+      "id": "doc1-q08",
+      "doc": "docusage_overview.txt",
+      "question": "Who is the product owner named in the sample?",
+      "answerable": true,
+      "must_include_any": ["rohith", "vasista"]
+    },
+    {
+      "id": "doc1-q09",
+      "doc": "docusage_overview.txt",
+      "question": "Which city is used for support tickets in the sample?",
+      "answerable": true,
+      "must_include_any": ["hyderabad"]
+    },
+    {
+      "id": "doc1-q10",
+      "doc": "docusage_overview.txt",
+      "question": "What is the support email?",
+      "answerable": true,
+      "must_include_any": ["support@docusage.example"]
+    },
+    {
+      "id": "doc1-q11",
+      "doc": "docusage_overview.txt",
+      "question": "What is DocuSage's annual revenue in 2024?",
+      "answerable": false,
+      "must_include_any": []
+    },
+    {
+      "id": "doc1-q12",
+      "doc": "docusage_overview.txt",
+      "question": "Does DocuSage integrate with Salesforce?",
+      "answerable": false,
+      "must_include_any": []
+    },
+    {
+      "id": "doc2-q01",
+      "doc": "project_atlas.txt",
+      "question": "What are the three Atlas modules?",
+      "answerable": true,
+      "must_include_any": ["intake", "review", "archive"]
+    },
+    {
+      "id": "doc2-q02",
+      "doc": "project_atlas.txt",
+      "question": "Which upload types does Intake accept?",
+      "answerable": true,
+      "must_include_any": ["pdf", "docx"]
+    },
+    {
+      "id": "doc2-q03",
+      "doc": "project_atlas.txt",
+      "question": "How quickly must Review assign an owner?",
+      "answerable": true,
+      "must_include_any": ["24", "hour"]
+    },
+    {
+      "id": "doc2-q04",
+      "doc": "project_atlas.txt",
+      "question": "How long does Archive keep approved files?",
+      "answerable": true,
+      "must_include_any": ["seven", "7", "year"]
+    },
+    {
+      "id": "doc2-q05",
+      "doc": "project_atlas.txt",
+      "question": "What is the first-response SLA?",
+      "answerable": true,
+      "must_include_any": ["four", "4", "hour"]
+    },
+    {
+      "id": "doc2-q06",
+      "doc": "project_atlas.txt",
+      "question": "Who handles escalations?",
+      "answerable": true,
+      "must_include_any": ["maya", "chen"]
+    },
+    {
+      "id": "doc2-q07",
+      "doc": "project_atlas.txt",
+      "question": "What is the maximum concurrent Review workers?",
+      "answerable": true,
+      "must_include_any": ["twelve", "12"]
+    },
+    {
+      "id": "doc2-q08",
+      "doc": "project_atlas.txt",
+      "question": "Does Atlas process video in version 2.1?",
+      "answerable": true,
+      "must_include_any": ["not", "video", "no"]
+    },
+    {
+      "id": "doc2-q09",
+      "doc": "project_atlas.txt",
+      "question": "What database vendor does Atlas use?",
+      "answerable": false,
+      "must_include_any": []
+    },
+    {
+      "id": "doc2-q10",
+      "doc": "project_atlas.txt",
+      "question": "How many offices does Atlas operate worldwide?",
+      "answerable": false,
+      "must_include_any": []
+    },
+    {
+      "id": "doc3-q01",
+      "doc": "garden_notes.txt",
+      "question": "How much sun do tomatoes need?",
+      "answerable": true,
+      "must_include_any": ["six", "6", "sun"]
+    },
+    {
+      "id": "doc3-q02",
+      "doc": "garden_notes.txt",
+      "question": "What night temperature does basil prefer?",
+      "answerable": true,
+      "must_include_any": ["15", "celsius"]
+    },
+    {
+      "id": "doc3-q03",
+      "doc": "garden_notes.txt",
+      "question": "How often should you water deeply?",
+      "answerable": true,
+      "must_include_any": ["twice", "week"]
+    },
+    {
+      "id": "doc3-q04",
+      "doc": "garden_notes.txt",
+      "question": "Can potatoes be planted beside tomatoes?",
+      "answerable": true,
+      "must_include_any": ["not", "do not", "beside"]
+    },
+    {
+      "id": "doc3-q05",
+      "doc": "garden_notes.txt",
+      "question": "Which crops may share a bed?",
+      "answerable": true,
+      "must_include_any": ["carrot", "onion"]
+    },
+    {
+      "id": "doc3-q06",
+      "doc": "garden_notes.txt",
+      "question": "When does the greenhouse open on Saturdays?",
+      "answerable": true,
+      "must_include_any": ["08:00", "8:00", "saturday"]
+    },
+    {
+      "id": "doc3-q07",
+      "doc": "garden_notes.txt",
+      "question": "Where must tools be returned?",
+      "answerable": true,
+      "must_include_any": ["north", "wing", "shed"]
+    },
+    {
+      "id": "doc3-q08",
+      "doc": "garden_notes.txt",
+      "question": "What fertilizer brand is recommended?",
+      "answerable": false,
+      "must_include_any": []
+    }
+  ]
+}

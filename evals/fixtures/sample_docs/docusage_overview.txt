@@ -1,0 +1,12 @@
+# This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
+
+DocuSage is a private document workspace. Users upload text files, receive an
+automatic summary, and can ask questions. Answers are grounded on the stored
+summary, not on vector retrieval over the full file.
+
+The default local model is llama3.2:1b running in Ollama. There is no paid API
+key. Storage limits are 10 MB per file and 1 GB per account. Soft delete moves
+files to Trash before permanent removal.
+
+Product owner for this sample is Rohith Kumar Vasista P. The sample city for
+support tickets is Hyderabad. The support email is support@docusage.example.
