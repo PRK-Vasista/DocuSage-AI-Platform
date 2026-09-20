@@ -25,6 +25,7 @@ All services are defined in `docker-compose.yaml` and share one Docker network.
 **Responsibilities:**
 - Registration and login screens  
 - Cursor-style workspace: left document rail, right summary + chat  
+- Retry processing when a document is Failed  
 - Light / dark theme, profile menu, logout  
 - Calls backend REST APIs only (never talks to AI service or Ollama)  
 
@@ -39,11 +40,13 @@ All services are defined in `docker-compose.yaml` and share one Docker network.
 **Purpose:** Application API and orchestration.
 
 **Responsibilities:**
-- JWT auth (register, login, `/me`)  
+- JWT auth (register, login, `/me`, change/forgot/reset password)  
 - File upload validation, storage, quota  
 - Document list, download, soft delete, permanent delete  
-- Background document processing (extract text, request summary)  
+- Background document processing (extract text, request summary with retries)  
+- Reprocess API for failed / not-yet-started documents  
 - Chat API that proxies inference to `ai-service`  
+- Structured `duration_ms` timing logs on AI client calls  
 - Alembic migrations on startup  
 - Does **not** call Ollama directly  
 
@@ -63,7 +66,8 @@ backend/app/
 
 **Useful URLs:**
 - API docs: http://localhost:8000/docs  
-- Health-style root: http://localhost:8000  
+- Health: http://localhost:8000/health  
+- Root: http://localhost:8000  
 
 ---
 

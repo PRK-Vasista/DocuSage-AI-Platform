@@ -12,10 +12,10 @@ If you are an end user looking for how to use the app, see the root **[README.md
 
 | Document | Description |
 |----------|-------------|
-| [Architecture](./architecture.md) | System overview, data flow, and design principles |
+| [Architecture](./architecture.md) | System overview, Mermaid flows, design principles |
 | [Services](./services.md) | What each Docker service does and how they talk |
 | [Evolution](./evolution.md) | Platform history through sprints and enhancements |
-| [Development Guide](./development-guide.md) | Local setup, tests, logs, migrations, APIs |
+| [Development Guide](./development-guide.md) | Local setup, tests, CI, migrations, APIs |
 
 ---
 
@@ -26,9 +26,12 @@ DocuSage-AI-Platform/
 ├── frontend/                 # React workspace UI
 ├── backend/                  # FastAPI API + auth + files + chat proxy
 ├── ai-service/               # Isolated AI unit (summarize + chat)
+├── evals/                    # Offline golden Q&A + metric helpers
+├── .github/workflows/        # CI (pytest + light syntax checks)
 ├── docker-compose.yaml       # Orchestrates all services
 ├── README.md                 # End-user documentation
+├── PRODUCTION.md             # Friend/local Docker deploy checklist
 └── developer-documentation/  # This folder
 ```
 
-**Current product version:** `v1.0.0` (first stable friend/local Docker release)
+**Current product version:** `v1.1` (base release `v1.0.0` + honesty, eval, retries, CI)

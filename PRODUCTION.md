@@ -1,4 +1,4 @@
-# Production checklist (v1.0.0 — friend/local Docker)
+# Production checklist (v1.1 — friend/local Docker)
 
 This is Copyright of DocuSage 2026 Owner Rohith Kumar Vasista P.
 
@@ -22,6 +22,9 @@ This release does **not** include a public reverse proxy or TLS terminator.
    - `LOG_LEVEL=INFO`
 5. Set `CORS_ORIGINS` to the exact browser origin(s) you use (e.g. `http://192.168.1.10:3000`).
 6. Optional password-reset email: set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, and `PUBLIC_APP_URL`. Leave `SMTP_HOST` empty if you only need change-password while logged in.
+7. Optional AI retry tuning (defaults are fine for most installs):
+   - `AI_SUMMARIZE_MAX_ATTEMPTS` (default `3`)
+   - `AI_SUMMARIZE_RETRY_SECONDS` (default `1.5`)
 
 ## Start
 
@@ -39,6 +42,7 @@ First boot may take several minutes while Ollama pulls `llama3.2:1b`.
 - `curl http://localhost:8000/health` shows database `ok`
 - `curl http://localhost:8100/api/v1/ai/health` shows model availability (may be `degraded` until pull finishes)
 - Upload a small PDF/TXT → status becomes Ready → summary + chat work
+- If processing fails, Failed reason is visible and **Retry processing** works without re-upload
 
 ## Backups (volumes)
 
@@ -58,9 +62,10 @@ cat docusage-backup.sql | docker compose exec -T db psql -U "$POSTGRES_USER" "$P
 
 Uploaded files volume can be archived with `docker run --rm -v <project>_user_files:/data -v "$PWD":/backup alpine tar czf /backup/user_files.tgz -C /data .`
 
-## Not in v1.0.0 (deferred)
+## Not in this release (deferred)
 
 - Public HTTPS / reverse proxy
 - Mandatory email verification on register
 - Third-party email SDKs
 - Multi-replica shared rate-limit store
+- Vector RAG / Redis / OpenTelemetry

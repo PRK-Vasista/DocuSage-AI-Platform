@@ -20,7 +20,7 @@ Early delivery used **sprints**. From **v0.6** onward, work is delivered as **en
 | Reliability & ops | **v0.8** | Enhancement | Healthchecks, rate limits, AI warm-up UX, backup docs |
 | Auth polish | **v0.9** | Enhancement | Change/reset password, friend/local Docker ready |
 | First stable release | **v1.0.0** | Release | DocuSage ready to use and share locally |
-| Post-v1 honesty & quality | **v1.1** | Enhancement | Docs, eval, retries, CI (Improvements 1–5); demo/ops next |
+| Post-v1 honesty & quality | **v1.1** | Enhancement | Docs, eval, latency logs, processing retries, CI |
 
 ---
 
@@ -111,16 +111,17 @@ Sprint-based delivery ended. Further work used enhancement versions through **`v
 - Friend/local Docker target (no public TLS reverse proxy in this release)  
 - Version tags and docs marked current at `v1.0.0`  
 
-### Enhancement v1.1 — Honesty, metrics, reliability (ongoing)
+### Enhancement v1.1 — Honesty, metrics, reliability
 
-Shipped as small Improvements (each committed separately):
+Shipped as small Improvements (each committed separately on `main`):
 
-1. Truthful docs + Mermaid architecture/sequence (summary-grounded chat, not RAG)  
-2. Latency logging on summarize/chat  
-3. Eval harness + baseline metrics  
-4. Processing retries + clearer Failed status  
-5. Expanded tests + GitHub Actions CI  
-6. Demo / verify / backup scripts  
+1. **Truthful docs + Mermaid** — README “is / is not”; architecture + upload→Ready→chat sequence; summary-grounded chat (not RAG)  
+2. **Latency logging** — `duration_ms` on summarize/chat in backend AI client and ai-service / Ollama path  
+3. **Eval harness** — `evals/` golden set, rule-based metrics, README baseline numbers, offline report  
+4. **Processing reliability** — AI summarize retries + extractive fallback; clearer `processing_error`; `POST /files/{id}/reprocess` + Retry in the UI  
+5. **CI + tests** — GitHub Actions (backend, ai-service, evals, JS syntax); auth/health/rate-limit coverage  
+
+**Still planned (not shipped yet):** demo / verify / backup helper scripts.
 
 **Not in v1.1:** vector RAG, Redis queues, OpenTelemetry.
 
@@ -144,4 +145,4 @@ Examples of types: `Feature`, `Enhancement`, `Bug`, `Release`.
 - [Services](./services.md)  
 - [Development Guide](./development-guide.md)  
 - [Production checklist](../PRODUCTION.md)  
-- [Changelog](../CHANGELOG.md)  
+- User guide: [../README.md](../README.md)  

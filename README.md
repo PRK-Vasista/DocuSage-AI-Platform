@@ -4,7 +4,7 @@
 
 DocuSage helps you upload documents, get clear summaries, and ask questions about your files — all in one secure workspace. AI runs **on your machine** (no paid cloud API key required).
 
-**Current version:** `v1.0.0` (enhancements on `v1.1`)
+**Current version:** `v1.1` (first stable base: `v1.0.0`)
 
 ---
 
@@ -42,6 +42,7 @@ Use DocuSage when you want to:
 | **See status** | Uploaded → Processing → Ready (or Failed) |
 | **Read summary** | When Ready, the right panel shows a summary of the whole document |
 | **Download summary** | Save the summary as a text file |
+| **Retry processing** | If a document Failed, retry without re-uploading |
 | **Chat** | Ask questions grounded on the document **summary** (not full-file RAG) |
 | **Trash** | Remove files to Trash, or delete permanently from Trash |
 | **Theme** | Switch Light / Dark from the top bar |
@@ -71,7 +72,23 @@ Then open: **http://localhost:3000**
 > First start can take a few minutes while Docker builds images and the local AI model is prepared.
 
 For a shared machine deploy checklist, see **[PRODUCTION.md](./PRODUCTION.md)**.  
-Release notes: **[CHANGELOG.md](./CHANGELOG.md)**.
+Product history for developers: **[developer-documentation/evolution.md](./developer-documentation/evolution.md)**.
+
+---
+
+## What’s in v1.1
+
+Built on top of the `v1.0.0` friend/local Docker release:
+
+| Area | What you get |
+|------|----------------|
+| Honest positioning | Docs and diagrams describe **summary-grounded** chat (not RAG) |
+| Latency visibility | Summarize/chat paths log `duration_ms` |
+| Eval harness | Offline golden Q&A under [`evals/`](./evals/) with baseline metrics below |
+| Processing reliability | AI summarize retries, clearer Failed errors, **Retry processing** in the UI |
+| CI | GitHub Actions on push/PR to `main` (backend, AI service, evals, JS syntax) |
+
+Still out of scope for v1.1: vector RAG, Redis queues, OpenTelemetry.
 
 ---
 
