@@ -1,5 +1,5 @@
 /**
- * Collapsible document summary panel with download action.
+ * Collapsible document summary panel with download and retry actions.
  */
 
 import React from 'react';
@@ -18,6 +18,8 @@ const SummaryPanel = ({
     isCollapsed,
     onToggleCollapse,
     onDownloadSummary,
+    onRetryProcessing,
+    isRetrying,
 }) => {
     if (!document) {
         return null;
@@ -34,6 +36,16 @@ const SummaryPanel = ({
                     <p className="summary-panel-subtitle">{document.filename}</p>
                 </div>
                 <div className="summary-panel-actions">
+                    {isFailed && (
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            disabled={isRetrying}
+                            onClick={onRetryProcessing}
+                        >
+                            {isRetrying ? 'Retrying...' : 'Retry processing'}
+                        </Button>
+                    )}
                     <Button
                         variant="secondary"
                         size="sm"
@@ -55,11 +67,19 @@ const SummaryPanel = ({
                         <p className="summary-text">{summaryText}</p>
                     )}
                     {!isLoading && !isReady && (
-                        <p className="summary-muted">
-                            {isFailed
-                                ? (document.processing_error || 'Summary failed for this document.')
-                                : 'Summary will appear when processing completes.'}
-                        </p>
+                        <div className="summary-failed-block">
+                            <p className="summary-muted">
+                                {isFailed
+                                    ? (document.processing_error
+                                        || 'Processing failed for this document.')
+                                    : 'Summary will appear when processing completes.'}
+                            </p>
+                            {isFailed && (
+                                <p className="summary-hint">
+                                    You can retry processing without re-uploading the file.
+                                </p>
+                            )}
+                        </div>
                     )}
                 </div>
             )}

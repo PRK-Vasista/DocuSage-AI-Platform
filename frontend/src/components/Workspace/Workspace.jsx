@@ -13,6 +13,7 @@ import {
     getDocumentSummary,
     listFiles,
     permanentlyDeleteFile,
+    reprocessFile,
     softDeleteFile,
     uploadFile,
 } from '../../api/apiService';
@@ -48,6 +49,7 @@ const Workspace = ({ token }) => {
     const [statusMessage, setStatusMessage] = useState(null);
     const [mobileShowDocs, setMobileShowDocs] = useState(true);
     const [aiHealthBanner, setAiHealthBanner] = useState(null);
+    const [isRetryingProcessing, setIsRetryingProcessing] = useState(false);
 
     const loadDocuments = useCallback(async (showLoader = true) => {
         if (!token) {
@@ -269,6 +271,28 @@ const Workspace = ({ token }) => {
         downloadTextFile(`${baseName}-summary.txt`, summaryText);
     };
 
+    const handleRetryProcessing = async () => {
+        if (!selectedDocument || !token) {
+            return;
+        }
+        setIsRetryingProcessing(true);
+        setStatusMessage({ type: 'info', message: 'Retrying document processing...' });
+        try {
+            await reprocessFile(selectedDocument.id, token);
+            setSummaryText('');
+            setStatusMessage({
+                type: 'success',
+                message: 'Processing restarted. Status will update shortly.',
+            });
+            await loadDocuments(false);
+        } catch (error) {
+            console.error('[Workspace] Reprocess failed:', error);
+            setStatusMessage({ type: 'error', message: error.message });
+        } finally {
+            setIsRetryingProcessing(false);
+        }
+    };
+
     const chatEnabled = Boolean(
         selectedDocument
         && !selectedDocument.is_deleted
@@ -338,6 +362,8 @@ const Workspace = ({ token }) => {
                                 isCollapsed={summaryCollapsed}
                                 onToggleCollapse={() => setSummaryCollapsed((value) => !value)}
                                 onDownloadSummary={handleDownloadSummary}
+                                onRetryProcessing={handleRetryProcessing}
+                                isRetrying={isRetryingProcessing}
                             />
                             <ChatPanel
                                 documentId={selectedDocument.id}

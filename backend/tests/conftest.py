@@ -38,6 +38,20 @@ def event_loop():
     loop.close()
 
 
+@pytest.fixture(autouse=True)
+def _isolate_upload_dir(tmp_path, monkeypatch: pytest.MonkeyPatch):
+    """
+    Route uploads into a writable temp directory for every test.
+
+    Avoids host permission issues with the Docker-owned user_uploads folder.
+    """
+    from app.core.config import app_settings
+
+    upload_root = tmp_path / "user_uploads"
+    upload_root.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(app_settings, "UPLOAD_DIR", str(upload_root))
+
+
 @pytest_asyncio.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """

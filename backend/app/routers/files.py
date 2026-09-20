@@ -20,7 +20,10 @@ from ..schemas.document_schemas import (
     DocumentSummaryResponse,
 )
 from ..services import document_service
-from ..services.document_processing_service import process_document_by_id
+from ..services.document_processing_service import (
+    process_document_by_id,
+    queue_reprocess_for_user,
+)
 
 router = APIRouter(tags=["Files"])
 logger = logging.getLogger("files_router")
@@ -281,3 +284,45 @@ async def permanently_delete_file(
         document_id=document_id,
         deletion_type="permanent",
     )
+
+
+@router.post("/{document_id}/reprocess", response_model=DocumentResponse)
+async def reprocess_file(
+    document_id: int,
+    background_tasks: BackgroundTasks,
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentResponse:
+    """
+    Retry extraction/summarization for a failed (or not-yet-started) document.
+
+    Args:
+        document_id: Document identifier.
+        background_tasks: FastAPI background task scheduler.
+        current_user: Authenticated user dependency.
+        db: Async SQLAlchemy session.
+
+    Returns:
+        DocumentResponse: Metadata after status reset to uploaded.
+    """
+    logger.info(
+        "Reprocess request for document_id=%s by user_id=%s",
+        document_id,
+        current_user["id"],
+    )
+    try:
+        await queue_reprocess_for_user(
+            db,
+            user_id=current_user["id"],
+            document_id=document_id,
+        )
+        response = await document_service.get_document_metadata(
+            db=db,
+            user_id=current_user["id"],
+            document_id=document_id,
+        )
+    except DocuSageError:
+        raise
+
+    background_tasks.add_task(process_document_by_id, document_id)
+    return response

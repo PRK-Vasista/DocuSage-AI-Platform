@@ -133,8 +133,12 @@ class SummarizationError(DocuSageError):
 class DocumentProcessingError(DocuSageError):
     """Raised when the end-to-end document processing pipeline fails."""
 
-    def __init__(self, message: str = "Document processing failed."):
-        super().__init__(message, status_code=500)
+    def __init__(
+        self,
+        message: str = "Document processing failed.",
+        status_code: int = 500,
+    ):
+        super().__init__(message, status_code=status_code)
         logger.error("Document processing error: %s", message)
 
 

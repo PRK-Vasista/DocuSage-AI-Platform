@@ -63,6 +63,8 @@ class AppSettings(BaseSettings):
     AI_SERVICE_TIMEOUT_SECONDS: float = 180.0
     AI_SERVICE_ENABLED: bool = True
     AI_FALLBACK_TO_EXTRACTIVE: bool = True  # Use local extractive summary if AI unit is down
+    AI_SUMMARIZE_MAX_ATTEMPTS: int = 3  # Transient AI retries before fallback/fail
+    AI_SUMMARIZE_RETRY_SECONDS: float = 1.5
     CHAT_HISTORY_LIMIT: int = 20
 
     # --- Database Migrations (Alembic) ---

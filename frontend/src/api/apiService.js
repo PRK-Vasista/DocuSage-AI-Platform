@@ -277,6 +277,27 @@ export async function permanentlyDeleteFile(documentId, token) {
 }
 
 /**
+ * Retry processing for a failed document.
+ *
+ * @param {number} documentId - Document identifier.
+ * @param {string} token - JWT bearer token.
+ * @returns {Promise<object>} Updated document metadata.
+ */
+export async function reprocessFile(documentId, token) {
+    const response = await authorizedFetch(`/files/${documentId}/reprocess`, {
+        method: 'POST',
+    }, token);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(extractErrorMessage(data, response.status, 'Reprocess failed'));
+    }
+
+    return data;
+}
+
+/**
  * Fetches summarized text for a processed document.
  *
  * @param {number} documentId - Document identifier.
