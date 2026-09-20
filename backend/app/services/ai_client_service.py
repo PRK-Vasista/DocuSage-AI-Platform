@@ -14,6 +14,7 @@ import httpx
 
 from ..core.config import app_settings
 from ..core.exceptions import AIServiceClientError, SummarizationError
+from ..core.timing import duration_ms, monotonic_ms
 
 logger = logging.getLogger("services.ai_client")
 
@@ -52,7 +53,12 @@ async def request_document_summary(text: str, max_chars: int | None = None) -> s
         payload["max_chars"] = max_chars
 
     url = f"{_ai_base_url()}/summarize"
-    logger.info("Calling AI service summarize: url=%s text_chars=%s", url, len(text))
+    started = monotonic_ms()
+    logger.info(
+        "op=ai_summarize event=start url=%s text_chars=%s",
+        url,
+        len(text),
+    )
 
     try:
         async with httpx.AsyncClient(timeout=app_settings.AI_SERVICE_TIMEOUT_SECONDS) as client:
@@ -60,7 +66,11 @@ async def request_document_summary(text: str, max_chars: int | None = None) -> s
             response.raise_for_status()
             data = response.json()
     except httpx.RequestError as exc:
-        logger.error("AI service summarize unreachable: %s", exc)
+        logger.error(
+            "op=ai_summarize event=error outcome=unreachable duration_ms=%s error=%s",
+            duration_ms(started),
+            exc,
+        )
         raise AIServiceClientError("AI service is unavailable for summarization.") from exc
     except httpx.HTTPStatusError as exc:
         detail = ""
@@ -68,16 +78,29 @@ async def request_document_summary(text: str, max_chars: int | None = None) -> s
             detail = exc.response.json().get("detail", "")
         except Exception:
             detail = exc.response.text
-        logger.error("AI service summarize failed: status=%s detail=%s", exc.response.status_code, detail)
+        logger.error(
+            "op=ai_summarize event=error outcome=http_error duration_ms=%s status=%s detail=%s",
+            duration_ms(started),
+            exc.response.status_code,
+            detail,
+        )
         raise AIServiceClientError(
             detail or "AI service summarization request failed."
         ) from exc
 
     summary = (data.get("summary") or "").strip()
     if not summary:
+        logger.error(
+            "op=ai_summarize event=error outcome=empty_summary duration_ms=%s",
+            duration_ms(started),
+        )
         raise SummarizationError("AI service returned an empty summary.")
 
-    logger.info("AI service summarize succeeded: summary_chars=%s", len(summary))
+    logger.info(
+        "op=ai_summarize event=success duration_ms=%s summary_chars=%s",
+        duration_ms(started),
+        len(summary),
+    )
     return summary
 
 
@@ -111,10 +134,12 @@ async def request_document_chat(
         "document_context": document_context,
         "history": history or [],
     }
+    started = monotonic_ms()
     logger.info(
-        "Calling AI service chat: question_chars=%s history=%s",
+        "op=ai_chat event=start question_chars=%s history=%s context_chars=%s",
         len(question),
         len(history or []),
+        len(document_context or ""),
     )
 
     try:
@@ -123,7 +148,11 @@ async def request_document_chat(
             response.raise_for_status()
             data = response.json()
     except httpx.RequestError as exc:
-        logger.error("AI service chat unreachable: %s", exc)
+        logger.error(
+            "op=ai_chat event=error outcome=unreachable duration_ms=%s error=%s",
+            duration_ms(started),
+            exc,
+        )
         raise AIServiceClientError("AI service is unavailable for chat.") from exc
     except httpx.HTTPStatusError as exc:
         detail = ""
@@ -131,14 +160,27 @@ async def request_document_chat(
             detail = exc.response.json().get("detail", "")
         except Exception:
             detail = exc.response.text
-        logger.error("AI service chat failed: status=%s detail=%s", exc.response.status_code, detail)
+        logger.error(
+            "op=ai_chat event=error outcome=http_error duration_ms=%s status=%s detail=%s",
+            duration_ms(started),
+            exc.response.status_code,
+            detail,
+        )
         raise AIServiceClientError(detail or "AI service chat request failed.") from exc
 
     answer = (data.get("answer") or "").strip()
     if not answer:
+        logger.error(
+            "op=ai_chat event=error outcome=empty_answer duration_ms=%s",
+            duration_ms(started),
+        )
         raise AIServiceClientError("AI service returned an empty chat answer.")
 
-    logger.info("AI service chat succeeded: answer_chars=%s", len(answer))
+    logger.info(
+        "op=ai_chat event=success duration_ms=%s answer_chars=%s",
+        duration_ms(started),
+        len(answer),
+    )
     return answer
 
 
@@ -156,14 +198,29 @@ async def check_ai_health() -> dict[str, Any]:
         return {"status": "disabled", "ollama_reachable": False, "model": None}
 
     url = f"{_ai_base_url()}/health"
+    started = monotonic_ms()
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(url)
             response.raise_for_status()
-            return response.json()
+            payload = response.json()
+        logger.info(
+            "op=ai_health event=success duration_ms=%s status=%s",
+            duration_ms(started),
+            payload.get("status"),
+        )
+        return payload
     except httpx.RequestError as exc:
-        logger.warning("AI health unreachable: %s", exc)
+        logger.warning(
+            "op=ai_health event=error outcome=unreachable duration_ms=%s error=%s",
+            duration_ms(started),
+            exc,
+        )
         raise AIServiceClientError("AI service health check failed.") from exc
     except httpx.HTTPStatusError as exc:
-        logger.warning("AI health HTTP error: %s", exc)
+        logger.warning(
+            "op=ai_health event=error outcome=http_error duration_ms=%s status=%s",
+            duration_ms(started),
+            exc.response.status_code,
+        )
         raise AIServiceClientError("AI service health check failed.") from exc

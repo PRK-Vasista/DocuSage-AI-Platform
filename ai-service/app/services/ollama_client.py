@@ -14,6 +14,7 @@ import httpx
 
 from ..core.config import ai_settings
 from ..core.exceptions import OllamaInferenceError, OllamaUnavailableError
+from ..core.timing import duration_ms, monotonic_ms
 
 logger = logging.getLogger("ai_service.ollama_client")
 
@@ -26,14 +27,22 @@ async def check_ollama_health() -> bool:
         bool: True when Ollama responds successfully.
     """
     url = f"{ai_settings.OLLAMA_BASE_URL.rstrip('/')}/api/tags"
+    started = monotonic_ms()
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(url)
             response.raise_for_status()
-            logger.info("Ollama health check succeeded.")
+            logger.info(
+                "op=ollama_health event=success duration_ms=%s",
+                duration_ms(started),
+            )
             return True
     except Exception as exc:
-        logger.warning("Ollama health check failed: %s", exc)
+        logger.warning(
+            "op=ollama_health event=error duration_ms=%s error=%s",
+            duration_ms(started),
+            exc,
+        )
         return False
 
 
@@ -46,6 +55,7 @@ async def is_configured_model_present() -> bool:
     """
     url = f"{ai_settings.OLLAMA_BASE_URL.rstrip('/')}/api/tags"
     target = ai_settings.OLLAMA_MODEL.lower()
+    started = monotonic_ms()
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(url)
@@ -54,10 +64,22 @@ async def is_configured_model_present() -> bool:
             for entry in models:
                 name = str(entry.get("name") or "").lower()
                 if name == target or name.startswith(f"{target}:"):
+                    logger.info(
+                        "op=ollama_model_present event=success duration_ms=%s present=true",
+                        duration_ms(started),
+                    )
                     return True
+            logger.info(
+                "op=ollama_model_present event=success duration_ms=%s present=false",
+                duration_ms(started),
+            )
             return False
     except Exception as exc:
-        logger.warning("Ollama model list check failed: %s", exc)
+        logger.warning(
+            "op=ollama_model_present event=error duration_ms=%s error=%s",
+            duration_ms(started),
+            exc,
+        )
         return False
 
 
@@ -75,20 +97,36 @@ async def ensure_model_available() -> None:
 
     url = f"{ai_settings.OLLAMA_BASE_URL.rstrip('/')}/api/pull"
     payload = {"name": ai_settings.OLLAMA_MODEL, "stream": False}
-    logger.info("Ensuring Ollama model is available: %s", ai_settings.OLLAMA_MODEL)
+    started = monotonic_ms()
+    logger.info(
+        "op=ollama_pull event=start model=%s",
+        ai_settings.OLLAMA_MODEL,
+    )
 
     try:
         async with httpx.AsyncClient(timeout=ai_settings.OLLAMA_TIMEOUT_SECONDS) as client:
             response = await client.post(url, json=payload)
             response.raise_for_status()
-            logger.info("Ollama model pull completed for %s", ai_settings.OLLAMA_MODEL)
+            logger.info(
+                "op=ollama_pull event=success duration_ms=%s model=%s",
+                duration_ms(started),
+                ai_settings.OLLAMA_MODEL,
+            )
     except httpx.RequestError as exc:
-        logger.error("Failed to reach Ollama for model pull: %s", exc)
+        logger.error(
+            "op=ollama_pull event=error outcome=unreachable duration_ms=%s error=%s",
+            duration_ms(started),
+            exc,
+        )
         raise OllamaUnavailableError(
             "Cannot reach Ollama to pull the configured model."
         ) from exc
     except httpx.HTTPStatusError as exc:
-        logger.error("Ollama model pull failed: %s", exc)
+        logger.error(
+            "op=ollama_pull event=error outcome=http_error duration_ms=%s status=%s",
+            duration_ms(started),
+            exc.response.status_code,
+        )
         raise OllamaInferenceError("Failed to pull the configured Ollama model.") from exc
 
 
@@ -112,8 +150,9 @@ async def generate_completion(prompt: str) -> str:
         "prompt": prompt,
         "stream": False,
     }
+    started = monotonic_ms()
     logger.info(
-        "Requesting Ollama completion: model=%s prompt_chars=%s",
+        "op=ollama_generate event=start model=%s prompt_chars=%s",
         ai_settings.OLLAMA_MODEL,
         len(prompt),
     )
@@ -124,18 +163,33 @@ async def generate_completion(prompt: str) -> str:
             response.raise_for_status()
             data = response.json()
     except httpx.RequestError as exc:
-        logger.error("Ollama generate request failed: %s", exc)
+        logger.error(
+            "op=ollama_generate event=error outcome=unreachable duration_ms=%s error=%s",
+            duration_ms(started),
+            exc,
+        )
         raise OllamaUnavailableError("Cannot reach Ollama for generation.") from exc
     except httpx.HTTPStatusError as exc:
-        logger.error("Ollama generate returned HTTP error: %s", exc)
+        logger.error(
+            "op=ollama_generate event=error outcome=http_error duration_ms=%s status=%s",
+            duration_ms(started),
+            exc.response.status_code,
+        )
         raise OllamaInferenceError("Ollama generation request failed.") from exc
 
     text = (data.get("response") or "").strip()
     if not text:
-        logger.error("Ollama returned an empty completion response.")
+        logger.error(
+            "op=ollama_generate event=error outcome=empty_response duration_ms=%s",
+            duration_ms(started),
+        )
         raise OllamaInferenceError("Ollama returned an empty response.")
 
-    logger.info("Ollama completion succeeded: response_chars=%s", len(text))
+    logger.info(
+        "op=ollama_generate event=success duration_ms=%s response_chars=%s",
+        duration_ms(started),
+        len(text),
+    )
     return text
 
 
@@ -159,8 +213,9 @@ async def generate_chat(messages: list[dict[str, str]]) -> str:
         "messages": messages,
         "stream": False,
     }
+    started = monotonic_ms()
     logger.info(
-        "Requesting Ollama chat: model=%s messages=%s",
+        "op=ollama_chat event=start model=%s messages=%s",
         ai_settings.OLLAMA_MODEL,
         len(messages),
     )
@@ -171,17 +226,32 @@ async def generate_chat(messages: list[dict[str, str]]) -> str:
             response.raise_for_status()
             data = response.json()
     except httpx.RequestError as exc:
-        logger.error("Ollama chat request failed: %s", exc)
+        logger.error(
+            "op=ollama_chat event=error outcome=unreachable duration_ms=%s error=%s",
+            duration_ms(started),
+            exc,
+        )
         raise OllamaUnavailableError("Cannot reach Ollama for chat.") from exc
     except httpx.HTTPStatusError as exc:
-        logger.error("Ollama chat returned HTTP error: %s", exc)
+        logger.error(
+            "op=ollama_chat event=error outcome=http_error duration_ms=%s status=%s",
+            duration_ms(started),
+            exc.response.status_code,
+        )
         raise OllamaInferenceError("Ollama chat request failed.") from exc
 
     message = data.get("message") or {}
     text = (message.get("content") or "").strip()
     if not text:
-        logger.error("Ollama returned an empty chat response.")
+        logger.error(
+            "op=ollama_chat event=error outcome=empty_response duration_ms=%s",
+            duration_ms(started),
+        )
         raise OllamaInferenceError("Ollama returned an empty chat response.")
 
-    logger.info("Ollama chat succeeded: response_chars=%s", len(text))
+    logger.info(
+        "op=ollama_chat event=success duration_ms=%s response_chars=%s",
+        duration_ms(started),
+        len(text),
+    )
     return text
