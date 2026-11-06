@@ -1,0 +1,16 @@
+{
+  "shared": {
+    "frontend": "http://host.docker.internal:3000",
+    "backend": "http://host.docker.internal:8000",
+    "ai": "http://host.docker.internal:8100",
+    "ollama": "http://host.docker.internal:11434",
+    "database": "postgresql://user:password@host.docker.internal:5432/docu_sage_db"
+  },
+  "isolated-tenant-a": {
+    "frontend": "http://host.docker.internal:3001",
+    "backend": "http://host.docker.internal:8001",
+    "ai": "http://host.docker.internal:8101",
+    "ollama": "http://host.docker.internal:11435",
+    "database": "postgresql://user:password@host.docker.internal:5433/docu_sage_db"
+  }
+}

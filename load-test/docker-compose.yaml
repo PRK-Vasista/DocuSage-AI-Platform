@@ -1,0 +1,35 @@
+services:
+  load-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docusage-load-test:local
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      LOAD_MODE: ${LOAD_MODE:-http}
+      TARGETS_JSON: ${TARGETS_JSON:-}
+      TARGET_URL: ${TARGET_URL:-http://host.docker.internal:8000/health}
+      HTTP_METHOD: ${HTTP_METHOD:-GET}
+      REQUESTS: ${REQUESTS:-100}
+      DURATION_SECONDS: ${DURATION_SECONDS:-0}
+      CONCURRENCY: ${CONCURRENCY:-10}
+      REQUESTS_PER_SECOND: ${REQUESTS_PER_SECOND:-10}
+      TIMEOUT_SECONDS: ${TIMEOUT_SECONDS:-10}
+      REQUEST_HEADERS: ${REQUEST_HEADERS:-{}}
+      REQUEST_BODY: ${REQUEST_BODY:-}
+      FAIL_ON_ERROR: ${FAIL_ON_ERROR:-true}
+      RESULTS_FILE: ${RESULTS_FILE:-/results/load-report.json}
+      APPLICATION_TARGETS_JSON: ${APPLICATION_TARGETS_JSON:-}
+      APPLICATION_TARGETS_FILE: ${APPLICATION_TARGETS_FILE:-}
+      SCENARIO_USERS: ${SCENARIO_USERS:-5}
+      SCENARIO_ROUNDS: ${SCENARIO_ROUNDS:-1}
+      SCENARIO_CONCURRENCY: ${SCENARIO_CONCURRENCY:-5}
+      SCENARIO_TIMEOUT_SECONDS: ${SCENARIO_TIMEOUT_SECONDS:-180}
+      SCENARIO_PROCESSING_WAIT_SECONDS: ${SCENARIO_PROCESSING_WAIT_SECONDS:-60}
+      SCENARIO_RUN_CHAT: ${SCENARIO_RUN_CHAT:-true}
+      SCENARIO_RUN_OLLAMA_INFERENCE: ${SCENARIO_RUN_OLLAMA_INFERENCE:-true}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+    volumes:
+      - .:/config:ro
+      - ./results:/results
