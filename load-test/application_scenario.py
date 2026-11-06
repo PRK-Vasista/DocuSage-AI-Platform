@@ -162,7 +162,9 @@ async def run_application_scenario() -> int:
     }
     if report_path:
         path = os.path.abspath(report_path)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        report_directory = os.path.dirname(path)
+        if report_directory:
+            os.makedirs(report_directory, exist_ok=True)
         with open(path, "w", encoding="utf-8") as report_file:
             json.dump(report, report_file, indent=2)
             report_file.write("\n")
